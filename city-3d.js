@@ -57,6 +57,7 @@
     coral: new THREE.MeshStandardMaterial({ color: palette.coral, roughness: 0.48, metalness: 0.16, emissive: 0x3b0904, emissiveIntensity: 0.3 }),
     gold: new THREE.MeshStandardMaterial({ color: palette.gold, roughness: 0.4, metalness: 0.5 }),
     road: new THREE.MeshStandardMaterial({ color: palette.road, roughness: .78, metalness: .12, emissive: 0x090b0a, emissiveIntensity: .38 }),
+    ground: new THREE.MeshStandardMaterial({ color: 0x780006, roughness: .88, metalness: .03, emissive: 0x080000, emissiveIntensity: .04 }),
     blue: material(palette.blue, 0.48, 0.28)
   };
 
@@ -146,17 +147,17 @@
   const city = new THREE.Group();
   scene.add(city);
 
-  const island = new THREE.Mesh(new THREE.CylinderGeometry(12.5, 13.1, 0.8, 10), materials.paper);
+  const island = new THREE.Mesh(new THREE.CylinderGeometry(12.5, 13.1, 0.8, 10), materials.ground);
   island.position.y = 0;
   island.receiveShadow = true;
   city.add(island);
   const underIsland = new THREE.Mesh(new THREE.CylinderGeometry(12.8, 11.6, 1.8, 10), materials.dark);
   underIsland.position.y = -1.15;
   city.add(underIsland);
-  const grid = new THREE.GridHelper(24, 24, 0x8c9d92, 0xc8d2cb);
+  const grid = new THREE.GridHelper(24, 24, 0xf2b5a9, 0x721b18);
   grid.position.y = .44;
   grid.material.transparent = true;
-  grid.material.opacity = .24;
+  grid.material.opacity = .3;
   city.add(grid);
 
   const landmarkPositions = {
