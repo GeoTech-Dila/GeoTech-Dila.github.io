@@ -4,8 +4,8 @@
 
   const THREE = window.THREE;
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xb7d2cd);
-  scene.fog = new THREE.Fog(0xb7d2cd, 29, 48);
+  scene.background = new THREE.Color(0x070907);
+  scene.fog = new THREE.Fog(0x070907, 29, 48);
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
