@@ -48,9 +48,29 @@ if (projectShowcase) {
   let dragDelta = 0;
   let dragging = false;
   let suppressClick = false;
+  let projectTransitionTimer = null;
 
-  function showProject(nextIndex) {
-    projectIndex = (nextIndex + slides.length) % slides.length;
+  function showProject(nextIndex, instant = false) {
+    const previousIndex = projectIndex;
+    const normalizedIndex = (nextIndex + slides.length) % slides.length;
+    const changed = normalizedIndex !== previousIndex;
+
+    if (changed && !instant) {
+      const direction = nextIndex < previousIndex ? 'prev' : 'next';
+      window.clearTimeout(projectTransitionTimer);
+      projectShowcase.classList.remove('is-transitioning');
+      projectShowcase.dataset.direction = direction;
+      projectShowcase.dataset.transition = slides[normalizedIndex].dataset.transition || 'wipe';
+      slides[previousIndex].classList.add('is-leaving');
+      void projectShowcase.offsetWidth;
+      projectShowcase.classList.add('is-transitioning');
+      projectTransitionTimer = window.setTimeout(() => {
+        projectShowcase.classList.remove('is-transitioning');
+        slides.forEach((slide) => slide.classList.remove('is-leaving'));
+      }, 1050);
+    }
+
+    projectIndex = normalizedIndex;
     track.style.transform = `translate3d(-${projectIndex * 100}%, 0, 0)`;
     slides.forEach((slide, index) => slide.classList.toggle('is-active', index === projectIndex));
     current.textContent = String(projectIndex + 1).padStart(2, '0');
@@ -103,7 +123,7 @@ if (projectShowcase) {
   }, true);
 
   projectShowcase.showProject = showProject;
-  showProject(0);
+  showProject(0, true);
 }
 
 const studyCities = {
@@ -139,6 +159,7 @@ const studyCities = {
 
 const projectViewButtons = [...document.querySelectorAll('[data-project-view]')];
 const projectViewPanels = [...document.querySelectorAll('[data-project-view-panel]')];
+let projectViewTimer = null;
 
 function setProjectView(view) {
   projectViewButtons.forEach((button) => {
@@ -147,8 +168,18 @@ function setProjectView(view) {
     button.setAttribute('aria-selected', String(selected));
   });
   projectViewPanels.forEach((panel) => {
-    panel.hidden = panel.dataset.projectViewPanel !== view;
+    const selected = panel.dataset.projectViewPanel === view;
+    panel.hidden = !selected;
+    panel.classList.remove('is-view-entering');
+    if (selected) {
+      void panel.offsetWidth;
+      panel.classList.add('is-view-entering');
+    }
   });
+  clearTimeout(projectViewTimer);
+  projectViewTimer = setTimeout(() => {
+    projectViewPanels.forEach((panel) => panel.classList.remove('is-view-entering'));
+  }, 900);
 }
 
 projectViewButtons.forEach((button) => button.addEventListener('click', () => setProjectView(button.dataset.projectView)));
@@ -202,6 +233,7 @@ if (turkeyMap && window.TURKEY_PROVINCES) {
   function selectStudyCity(cityName) {
     const city = studyCities[cityName];
     if (!city) return;
+    const cityStory = document.querySelector('.city-story');
     document.getElementById('city-story-index').textContent = city.index;
     document.getElementById('city-story-title').textContent = cityName;
     document.getElementById('city-story-type').textContent = city.type;
@@ -210,6 +242,12 @@ if (turkeyMap && window.TURKEY_PROVINCES) {
     document.getElementById('city-story-actions').innerHTML = city.actions;
     provinceLayer.querySelectorAll('.province-path').forEach((path) => path.classList.toggle('is-active', path.dataset.city === cityName));
     markerLayer.querySelectorAll('.city-marker').forEach((marker) => marker.classList.toggle('is-active', marker.dataset.city === cityName));
+    cityStory?.classList.remove('is-changing');
+    if (cityStory) {
+      void cityStory.offsetWidth;
+      cityStory.classList.add('is-changing');
+      setTimeout(() => cityStory.classList.remove('is-changing'), 760);
+    }
   }
 
   window.TURKEY_PROVINCES.features.forEach((feature) => {
@@ -392,7 +430,8 @@ function updateGame() {
   mapBadge.textContent = `Keşif ${percent}%`;
   progressFill.style.width = `${percent}%`;
   routeProgress.style.strokeDashoffset = `${100 - percent}`;
-  window.careerCity3D?.setProgress(percent / 100);
+  const routeCompletion = exploredCount > 0 ? (exploredCount - 1) / (gameZones.length - 1) : 0;
+  window.careerCity3D?.setProgress(routeCompletion);
 
   if (exploredCount === gameZones.length) {
     mapStatus.textContent = 'Rota tamamlandı';
