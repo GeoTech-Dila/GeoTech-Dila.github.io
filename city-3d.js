@@ -162,6 +162,7 @@
 
   const landmarkPositions = {
     about: new THREE.Vector3(-7.2, .6, -3.2),
+    university: new THREE.Vector3(-7.0, .6, 1.25),
     experience: new THREE.Vector3(-3.8, .6, 3.7),
     projects: new THREE.Vector3(.5, .6, -.5),
     certificates: new THREE.Vector3(5.1, .6, -3.1),
@@ -169,6 +170,7 @@
   };
   const labelAnchors = {
     about: new THREE.Vector3(-7.2, 3.2, -3.2),
+    university: new THREE.Vector3(-7.0, 5.05, 1.25),
     experience: new THREE.Vector3(-3.8, 4.1, 3.7),
     projects: new THREE.Vector3(.5, 6.5, -.5),
     certificates: new THREE.Vector3(5.1, 2.8, -3.1),
@@ -176,9 +178,9 @@
   };
 
   const routePoints = [
-    [-7.2, -3.2], [-5.6, .1], [-3.8, 3.7], [-1.8, 1.8], [.5, -.5], [2.8, -1.4], [5.1, -3.1], [6.3, -.2], [7.4, 3.2]
+    [-7.2, -3.2], [-7.1, -.8], [-7.0, 1.25], [-5.4, 2.7], [-3.8, 3.7], [-1.8, 1.8], [.5, -.5], [2.8, -1.4], [5.1, -3.1], [6.3, -.2], [7.4, 3.2]
   ];
-  routePoints.slice(0, -1).forEach((point, index) => roadBetween(city, point, routePoints[index + 1], index === 4 || index === 5 ? 1.58 : 1.32));
+  routePoints.slice(0, -1).forEach((point, index) => roadBetween(city, point, routePoints[index + 1], index === 6 || index === 7 ? 1.58 : 1.32));
   const successRoadMeshes = routePoints
     .slice(0, -1)
     .map((point, index) => glowingRoadBetween(city, point, routePoints[index + 1], index === 4 || index === 5 ? 1.82 : 1.56))
@@ -194,6 +196,29 @@
   box(house, [.55, .9, .08], [1.0, .98, -1.07], materials.ink);
   [-1.3, 1.45].forEach((x) => tree(house, x, 1.75, .72));
   city.add(house);
+
+  const university = new THREE.Group();
+  university.position.copy(landmarkPositions.university);
+  box(university, [4.15, .28, 3.15], [0, .25, 0], materials.concrete);
+  box(university, [3.75, .12, 2.78], [0, .48, 0], materials.paper);
+  box(university, [2.3, 2.8, .72], [0, 1.92, .94], materials.paper);
+  box(university, [.72, 2.15, 2.35], [-1.52, 1.58, -.15], materials.paper);
+  box(university, [.72, 2.15, 2.35], [1.52, 1.58, -.15], materials.paper);
+  box(university, [2.08, 1.58, .12], [0, 1.48, .55], materials.glass);
+  box(university, [2.5, .18, .95], [0, 3.38, .88], materials.coral);
+  box(university, [1.52, .14, .58], [0, .62, -1.16], materials.coral);
+  [-.78, -.39, 0, .39, .78].forEach((x) => {
+    cylinder(university, .055, 1.58, [x, 1.45, -.98], materials.paper, 10);
+  });
+  [-.68, 0, .68].forEach((x) => tree(university, x, -1.72, .48));
+  const campusHalo = new THREE.Mesh(
+    new THREE.TorusGeometry(1.28, .045, 8, 52),
+    new THREE.MeshBasicMaterial({ color: palette.coral, transparent: true, opacity: .68 })
+  );
+  campusHalo.position.set(0, 3.78, .1);
+  campusHalo.rotation.x = Math.PI / 2;
+  university.add(campusHalo);
+  city.add(university);
 
   const museum = new THREE.Group();
   museum.position.copy(landmarkPositions.experience);
@@ -255,10 +280,10 @@
   city.add(mast);
 
   const backgroundBuildings = [
-    [-9, 2, 1.25, 1.2, 2.4, materials.blue], [-7.2, 4.8, 1.1, 1.0, 3.2, materials.dark],
+    [-10.1, 3.5, 1.05, 1.0, 2.2, materials.blue], [-7.4, 5.8, 1.0, .9, 2.7, materials.dark],
     [-1.0, 5.8, 1.2, 1.25, 2.1, materials.green], [3.3, 4.9, 1.3, 1.0, 3.0, materials.blue],
     [8.8, -1.0, 1.15, 1.3, 2.65, materials.dark], [2.1, -5.7, 1.25, 1.1, 2.2, materials.green],
-    [-3.3, -5.8, 1.3, 1.2, 2.75, materials.blue], [-9.1, -.4, 1.1, 1.0, 1.8, materials.gold]
+    [-3.3, -5.8, 1.3, 1.2, 2.75, materials.blue], [-10.2, -1.0, 1.0, .9, 1.65, materials.gold]
   ];
   backgroundBuildings.forEach(([x, z, width, depth, height, mat]) => {
     box(city, [width, height, depth], [x, height / 2 + .45, z], mat);
@@ -266,8 +291,8 @@
   });
   [[-10, -4], [-9, -5], [-6, 6], [-1, -7], [4, 6], [9, 5], [10, 2], [7, -6], [3.8, -5.3]].forEach(([x, z], index) => tree(city, x, z, .68 + (index % 3) * .1));
 
-  [house, museum, trade, certificates, mast].forEach((group, index) => {
-    const zone = ['about', 'experience', 'projects', 'certificates', 'contact'][index];
+  [house, university, museum, trade, certificates, mast].forEach((group, index) => {
+    const zone = ['about', 'university', 'experience', 'projects', 'certificates', 'contact'][index];
     group.traverse((object) => {
       if (object.isMesh) object.userData.zone = zone;
     });
@@ -464,6 +489,8 @@
     routeOrb.position.copy(routeCurve.getPoint(THREE.MathUtils.clamp(routeProgress, 0, 1)));
     routeOrb.position.y += Math.sin(elapsed * 3) * .08;
     museumRing.rotation.z = elapsed * .35;
+    campusHalo.rotation.z = elapsed * .22;
+    campusHalo.material.opacity = .5 + Math.sin(elapsed * 2.1) * .18;
     signalRings.forEach((ring, index) => {
       ring.scale.setScalar(1 + ((elapsed * .55 + index * .28) % 1) * .55);
       ring.material.opacity = .8 - ((elapsed * .55 + index * .28) % 1) * .65;

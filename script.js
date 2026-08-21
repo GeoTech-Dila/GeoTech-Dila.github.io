@@ -260,7 +260,7 @@ if (turkeyMap && window.TURKEY_PROVINCES) {
   selectStudyCity('İzmir');
 }
 
-const gameZones = ['about', 'experience', 'projects', 'certificates', 'contact'];
+const gameZones = ['about', 'university', 'experience', 'projects', 'certificates', 'contact'];
 const mapNodes = [...document.querySelectorAll('.map-node')];
 const gameSections = [...document.querySelectorAll('.game-section')];
 const mapPlayer = document.getElementById('map-player');
@@ -273,13 +273,15 @@ const sceneTransition = document.getElementById('scene-transition');
 const sceneTransitionTitle = document.getElementById('scene-transition-title');
 const mobilePositions = {
   about: [18, 82],
-  experience: [38, 65],
-  projects: [66, 53],
-  certificates: [30, 34],
-  contact: [72, 17]
+  university: [31, 69],
+  experience: [43, 57],
+  projects: [66, 46],
+  certificates: [34, 31],
+  contact: [74, 16]
 };
 const zoneTitles = {
   about: 'Hakkımda',
+  university: 'Üniversite',
   experience: 'Deneyim',
   projects: 'Projeler',
   certificates: 'Başarılar',
@@ -287,6 +289,7 @@ const zoneTitles = {
 };
 const mapStopNames = {
   about: "Dila'nın Evi",
+  university: 'Dokuz Eylül Üniversitesi',
   experience: 'Deneyim Müzesi',
   projects: 'Projeler Ticaret Merkezi',
   certificates: 'Başarıya Giden Yol',
@@ -384,8 +387,8 @@ function updateGame() {
     section.classList.toggle('is-stage-active', active);
   });
 
-  const percent = exploredCount * 20;
-  mapScore.textContent = `${exploredCount} / 5`;
+  const percent = Math.round((exploredCount / gameZones.length) * 100);
+  mapScore.textContent = `${exploredCount} / ${gameZones.length}`;
   mapBadge.textContent = `Keşif ${percent}%`;
   progressFill.style.width = `${percent}%`;
   routeProgress.style.strokeDashoffset = `${100 - percent}`;
@@ -432,4 +435,30 @@ document.querySelectorAll('.brand, a[href="#career-map"]').forEach((link) => {
 });
 
 window.addEventListener('resize', () => movePlayer(exploredZones.at(-1) || gameZones[0]));
+
+const academicReveals = [...document.querySelectorAll('.academic-reveal')];
+const academicObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add('is-visible');
+    entry.target.querySelectorAll('[data-count]').forEach((counter) => {
+      if (counter.dataset.counted) return;
+      counter.dataset.counted = 'true';
+      const target = Number(counter.dataset.count);
+      const decimals = String(counter.dataset.count).includes('.') ? 2 : 0;
+      const start = performance.now();
+      const duration = 1100;
+      function count(now) {
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        counter.textContent = (target * eased).toFixed(decimals).replace('.', ',');
+        if (progress < 1) requestAnimationFrame(count);
+      }
+      requestAnimationFrame(count);
+    });
+    academicObserver.unobserve(entry.target);
+  });
+}, { threshold: .18 });
+academicReveals.forEach((element) => academicObserver.observe(element));
+
 updateGame();
