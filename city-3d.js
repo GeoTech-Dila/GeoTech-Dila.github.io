@@ -136,6 +136,97 @@
     return [glow, core];
   }
 
+  function ribbonGeometry(curve, width, y, segments = 180) {
+    const positions = [];
+    const indices = [];
+    for (let index = 0; index <= segments; index += 1) {
+      const amount = index / segments;
+      const point = curve.getPoint(amount);
+      const tangent = curve.getTangent(amount).normalize();
+      const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+      const left = point.clone().addScaledVector(normal, width / 2);
+      const right = point.clone().addScaledVector(normal, -width / 2);
+      positions.push(left.x, y, left.z, right.x, y, right.z);
+      if (index < segments) {
+        const offset = index * 2;
+        indices.push(offset, offset + 2, offset + 1, offset + 2, offset + 3, offset + 1);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    return geometry;
+  }
+
+  function curvedRoad(parent, points, width = 1.28) {
+    const meshes = [];
+    const dashMeshes = [];
+    const curve = new THREE.CatmullRomCurve3(
+      points.map(([x, z]) => new THREE.Vector3(x, 0, z)),
+      false,
+      'catmullrom',
+      .42
+    );
+    const border = new THREE.Mesh(ribbonGeometry(curve, width + .34, .55), materials.paper);
+    border.receiveShadow = true;
+    parent.add(border);
+    meshes.push(border);
+    const road = new THREE.Mesh(ribbonGeometry(curve, width, .64), materials.road);
+    road.receiveShadow = true;
+    parent.add(road);
+    meshes.push(road);
+
+    [-1, 1].forEach((side) => {
+      const edgeCurve = new THREE.CatmullRomCurve3(
+        Array.from({ length: 81 }, (_, index) => {
+          const amount = index / 80;
+          const point = curve.getPoint(amount);
+          const tangent = curve.getTangent(amount).normalize();
+          const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+          return point.addScaledVector(normal, side * (width / 2 - .08));
+        }),
+        false,
+        'catmullrom',
+        .3
+      );
+      const edge = new THREE.Mesh(ribbonGeometry(edgeCurve, .075, .735, 180), materials.gold);
+      parent.add(edge);
+      meshes.push(edge);
+    });
+
+    for (let amount = .035; amount < .98; amount += .075) {
+      const start = curve.getPoint(amount);
+      const end = curve.getPoint(Math.min(amount + .035, 1));
+      const dx = end.x - start.x;
+      const dz = end.z - start.z;
+      const dash = box(parent, [Math.hypot(dx, dz), .035, .07], [(start.x + end.x) / 2, .75, (start.z + end.z) / 2], materials.paper, -Math.atan2(dz, dx));
+      dash.userData.routeAmount = amount;
+      dashMeshes.push(dash);
+    }
+    return { curve, meshes, dashMeshes };
+  }
+
+  function curvedRoadGlow(parent, curve, width = 1.5) {
+    const glow = new THREE.Mesh(
+      ribbonGeometry(curve, width, .79),
+      new THREE.MeshBasicMaterial({ color: 0xff7056, transparent: true, opacity: .1, depthWrite: false })
+    );
+    glow.userData.zone = 'certificates';
+    glow.userData.successRoad = true;
+    glow.userData.glowLayer = true;
+    parent.add(glow);
+    const core = new THREE.Mesh(
+      ribbonGeometry(curve, .12, .86),
+      new THREE.MeshBasicMaterial({ color: 0x050705, transparent: true, opacity: 1, depthWrite: false, depthTest: false })
+    );
+    core.renderOrder = 20;
+    core.userData.zone = 'certificates';
+    core.userData.successRoad = true;
+    parent.add(core);
+    return [glow, core];
+  }
+
   function tree(parent, x, z, scale = 1) {
     cylinder(parent, .09 * scale, .75 * scale, [x, .92 * scale, z], materials.dark, 8);
     const crown = new THREE.Mesh(new THREE.ConeGeometry(.42 * scale, .9 * scale, 8), materials.green);
@@ -162,7 +253,7 @@
 
   const landmarkPositions = {
     about: new THREE.Vector3(-7.2, .6, -3.2),
-    university: new THREE.Vector3(-7.0, .6, 1.25),
+    university: new THREE.Vector3(-8.9, .6, 1.8),
     experience: new THREE.Vector3(-3.8, .6, 3.7),
     projects: new THREE.Vector3(.5, .6, -.5),
     certificates: new THREE.Vector3(5.1, .6, -3.1),
@@ -170,7 +261,7 @@
   };
   const labelAnchors = {
     about: new THREE.Vector3(-7.2, 3.2, -3.2),
-    university: new THREE.Vector3(-7.0, 5.05, 1.25),
+    university: new THREE.Vector3(-8.9, 5.05, 1.8),
     experience: new THREE.Vector3(-3.8, 4.1, 3.7),
     projects: new THREE.Vector3(.5, 6.5, -.5),
     certificates: new THREE.Vector3(5.1, 2.8, -3.1),
@@ -178,13 +269,18 @@
   };
 
   const routePoints = [
-    [-7.2, -3.2], [-7.1, -.8], [-7.0, 1.25], [-5.4, 2.7], [-3.8, 3.7], [-1.8, 1.8], [.5, -.5], [2.8, -1.4], [5.1, -3.1], [6.3, -.2], [7.4, 3.2]
+    [-8.8, -4.8], [-10.4, -4.2], [-11.35, -2.2], [-11.45, 1.8],
+    [-10.6, 4.2], [-7.2, 5.8], [-3.8, 5.55], [-1.25, 5.3],
+    [3.65, 3.0], [3.55, -.45], [3.55, -3.1], [4.0, -4.75],
+    [5.1, -4.75], [6.8, -4.5], [8.75, -2.2], [9.1, .4],
+    [8.9, 2.1], [8.7, 3.2]
   ];
-  routePoints.slice(0, -1).forEach((point, index) => roadBetween(city, point, routePoints[index + 1], index === 6 || index === 7 ? 1.58 : 1.32));
-  const successRoadMeshes = routePoints
-    .slice(0, -1)
-    .map((point, index) => glowingRoadBetween(city, point, routePoints[index + 1], index === 4 || index === 5 ? 1.82 : 1.56))
-    .flat();
+  const routeStopProgress = [0, 3 / 17, 6 / 17, 9 / 17, 12 / 17, 1];
+  const routeRoad = curvedRoad(city, routePoints);
+  const routeRoadCurve = routeRoad.curve;
+  const routeRevealMeshes = routeRoad.meshes;
+  const routeDashMeshes = routeRoad.dashMeshes;
+  const successRoadMeshes = curvedRoadGlow(city, routeRoadCurve);
 
   const house = new THREE.Group();
   house.position.copy(landmarkPositions.about);
@@ -280,8 +376,8 @@
   city.add(mast);
 
   const backgroundBuildings = [
-    [-10.1, 3.5, 1.05, 1.0, 2.2, materials.blue], [-7.4, 5.8, 1.0, .9, 2.7, materials.dark],
-    [-1.0, 5.8, 1.2, 1.25, 2.1, materials.green], [3.3, 4.9, 1.3, 1.0, 3.0, materials.blue],
+    [-10.4, 5.2, 1.05, 1.0, 2.2, materials.blue], [-7.4, 5.8, 1.0, .9, 2.7, materials.dark],
+    [-.8, 7.6, 1.2, 1.25, 2.1, materials.green], [5.3, 5.8, 1.3, 1.0, 3.0, materials.blue],
     [8.8, -1.0, 1.15, 1.3, 2.65, materials.dark], [2.1, -5.7, 1.25, 1.1, 2.2, materials.green],
     [-3.3, -5.8, 1.3, 1.2, 2.75, materials.blue], [-10.2, -1.0, 1.0, .9, 1.65, materials.gold]
   ];
@@ -310,11 +406,20 @@
   });
   scene.add(activeBeacon);
 
-  const routeCurve = new THREE.CatmullRomCurve3(routePoints.map(([x, z]) => new THREE.Vector3(x, .78, z)), false, 'catmullrom', .18);
+  const routeCurve = new THREE.CatmullRomCurve3(routePoints.map(([x, z]) => new THREE.Vector3(x, .78, z)), false, 'catmullrom', .42);
   const routeOrb = new THREE.Mesh(new THREE.SphereGeometry(.13, 14, 10), new THREE.MeshBasicMaterial({ color: palette.coral }));
   scene.add(routeOrb);
   let routeProgress = 0;
   let targetRouteProgress = 0;
+
+  function setRouteMeshProgress(mesh, progress) {
+    const total = mesh.geometry.index?.count || mesh.geometry.attributes.position.count;
+    const count = Math.floor((total * progress) / 6) * 6;
+    mesh.geometry.setDrawRange(0, Math.max(0, Math.min(total, count)));
+  }
+
+  [...routeRevealMeshes, ...successRoadMeshes].forEach((mesh) => setRouteMeshProgress(mesh, 0));
+  routeDashMeshes.forEach((dash) => { dash.visible = false; });
 
   let radius = 27;
   let theta = 1.56;
@@ -486,6 +591,9 @@
     phi += (targetPhi - phi) * .09;
     positionCamera();
     routeProgress += (targetRouteProgress - routeProgress) * .045;
+    [...routeRevealMeshes, ...successRoadMeshes].forEach((mesh) => setRouteMeshProgress(mesh, routeProgress));
+    routeDashMeshes.forEach((dash) => { dash.visible = dash.userData.routeAmount <= routeProgress; });
+    routeOrb.visible = routeProgress > .003;
     routeOrb.position.copy(routeCurve.getPoint(THREE.MathUtils.clamp(routeProgress, 0, 1)));
     routeOrb.position.y += Math.sin(elapsed * 3) * .08;
     museumRing.rotation.z = elapsed * .35;
@@ -507,9 +615,8 @@
       const pulse = .5 + Math.sin(elapsed * 3.1 + index * .65) * .5;
       const targetOpacity = road.userData.glowLayer
         ? (successRoadHovered ? .68 : certificateActive ? .42 + pulse * .18 : .1 + pulse * .05)
-        : (successRoadHovered ? .98 : certificateActive ? .72 + pulse * .18 : .44 + pulse * .08);
+        : (successRoadHovered ? 1 : certificateActive ? .98 : .9 + pulse * .06);
       road.material.opacity += (targetOpacity - road.material.opacity) * .16;
-      road.scale.z += (((successRoadHovered && road.userData.glowLayer ? 1.15 : 1)) - road.scale.z) * .14;
     });
     syncOverlayPositions();
     renderer.render(scene, camera);
@@ -522,7 +629,9 @@
   }
 
   function setProgress(value) {
-    targetRouteProgress = THREE.MathUtils.clamp(value, 0, 1);
+    const scaled = THREE.MathUtils.clamp(value, 0, 1) * (routeStopProgress.length - 1);
+    const index = Math.min(Math.floor(scaled), routeStopProgress.length - 2);
+    targetRouteProgress = THREE.MathUtils.lerp(routeStopProgress[index], routeStopProgress[index + 1], scaled - index);
   }
 
   window.careerCity3D = { resetCamera, setActiveZone, setProgress, renderer, scene, camera };
