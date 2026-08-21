@@ -132,14 +132,14 @@ const studyCities = {
     type: 'Mekânsal analiz · Planlama · Araştırma',
     text: 'Kentsel ısı adası, yaya gölgelenmesi ve Selçuk planlama analizlerinin yanında profesyonel şehir planlama çalışmalarını yürüttüğüm ana çalışma alanı.',
     tools: ['QGIS', 'Google Earth Engine', 'CityEngine', 'Netcad'],
-    actions: '<button type="button" data-open-study-dialog="heat-island-dialog">TÜBİTAK projesini aç ↗</button><button type="button" data-slide-index="2">Selçuk çalışması ↗</button>'
+    actions: '<button type="button" data-open-study-dialog="heat-island-dialog">TÜBİTAK projesini aç ↗</button><button type="button" data-slide-index="1">Selçuk 3.1 ↗</button><button type="button" data-slide-index="2">Selçuk 3.2 ↗</button>'
   },
   'Sakarya': {
     index: '02 / 04', code: 'SA', coordinates: [30.4033, 40.7569],
     type: 'Bitirme projesi · Erişilebilirlik · Veri üretimi',
     text: 'Kadın dostu kent yaklaşımıyla toplumsal cinsiyet, donatı erişimi ve kentsel hizmet göstergelerini değerlendirdiğim bitirme projesinin çalışma alanı.',
     tools: ['QGIS', 'Ağ analizi', 'Erişilebilirlik', 'Mekânsal veri'],
-    actions: '<button type="button" data-slide-index="0">Projeyi gör ↗</button>'
+    actions: '<button type="button" data-open-study-dialog="sakarya-graduation-dialog">Bitirme projesini aç ↗</button><button type="button" data-slide-index="0">Akışta gör ↗</button>'
   },
   'Konya': {
     index: '03 / 04', code: 'KO', coordinates: [32.4846, 37.8746],
