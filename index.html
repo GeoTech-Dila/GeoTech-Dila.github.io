@@ -5,11 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Rabia Dila Öztürk - Şehir plancısı, mekânsal veri analisti ve veri üreticisi.">
   <title>Rabia Dila Öztürk | Şehir Plancısı &amp; Spatial Data Analyst</title>
-<link rel="stylesheet" href="styles.css?v=20260822-4">
+<link rel="icon" href="data:,">
+<link rel="preload" href="assets/portfolio-book/hand-left.webp" as="image">
+<link rel="preload" href="assets/portfolio-book/hand-grab-left.webp" as="image">
+<link rel="stylesheet" href="styles.css?v=20260822-8">
 </head>
 <body>
-  <header class="site-header"><a class="brand" href="#top" aria-label="GeoTech.D ana sayfa"><span class="brand-mark" aria-hidden="true">GeoTech<span class="brand-dot">.D</span></span></a><nav aria-label="Ana menü"><a href="#career-map">Harita</a><a href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub</a><a href="rabia-dila-ozturk-cv.pdf" download>CV</a></nav><button class="theme-toggle" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><span aria-hidden="true">◐</span></button></header>
+  <header class="site-header"><a class="brand" href="#top" aria-label="GeoTech.D ana sayfa"><span class="brand-mark" aria-hidden="true">GeoTech<span class="brand-dot">.D</span></span></a><nav aria-label="Ana menü"><a href="#career-map">Harita</a><a href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub</a><button class="nav-portfolio" type="button" data-open-book>Portfolyo</button><a href="rabia-dila-ozturk-cv.pdf" download>CV</a></nav><button class="theme-toggle" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><span aria-hidden="true">◐</span></button></header>
   <div class="scene-transition" id="scene-transition" aria-hidden="true"><i></i><strong id="scene-transition-title"></strong><span>Keşif rotası</span></div>
+  <section class="portfolio-book-stage" id="portfolio-book" aria-label="Üç boyutlu portfolyo kitabı" aria-hidden="true" hidden>
+    <div class="portfolio-book-canvas" id="portfolio-book-canvas"></div>
+    <div class="portfolio-book-topbar">
+      <div><span>GeoTech.D</span><strong>Portfolyo / 3B</strong></div>
+      <div class="portfolio-book-tools">
+        <button type="button" data-book-view-reset aria-label="Kitap görünümünü sıfırla" title="Görünümü sıfırla">⟳</button>
+        <button type="button" data-book-reset aria-label="Kitabı başlangıca döndür" title="Başa dön">↻</button>
+        <button class="portfolio-book-close" type="button" data-close-book aria-label="Portfolyo kitabını kapat" title="Kapat">×</button>
+      </div>
+    </div>
+    <div class="portfolio-book-view-panel" aria-label="Yakınlaştırma paneli">
+      <button type="button" data-book-zoom-out aria-label="Uzaklaştır" title="Uzaklaştır">−</button>
+      <input type="range" min="65" max="240" step="1" value="100" data-book-zoom aria-label="Kitap yakınlaştırma düzeyi">
+      <button type="button" data-book-zoom-in aria-label="Yakınlaştır" title="Yakınlaştır">+</button>
+      <output data-book-zoom-value>100%</output>
+    </div>
+    <div class="portfolio-book-counter"><strong data-book-pages>01 / 02</strong><span>/ 96</span></div>
+    <div class="portfolio-book-progress" aria-hidden="true"><i data-book-progress></i></div>
+    <img class="portfolio-hand portfolio-hand-left" src="assets/portfolio-book/hand-left.webp" alt="" aria-hidden="true">
+    <img class="portfolio-hand portfolio-hand-right" src="assets/portfolio-book/hand-left.webp" alt="" aria-hidden="true">
+    <div class="portfolio-book-loading" aria-live="polite"><span>PORTFOLYO</span><i></i></div>
+  </section>
   <main id="top">
     <section class="hero" aria-labelledby="hero-title"><div class="hero-shade"></div>
 <div class="hero-content">
@@ -26,7 +51,7 @@
 <p class="hero-role">Şehir Plancısı · Spatial Data Analyst · Veri Üreticisi</p>
 <p class="hero-copy">Mekânsal veriyi üretiyor, analiz ediyor ve erişilebilir, sürdürülebilir, insan odaklı kent kararları için görünür hale getiriyorum.</p>
 <div class="hero-actions">
-<a class="button button-primary" href="#career-map">Keşfe başla <span aria-hidden="true">↓</span></a><a class="button button-ghost" href="rabia-dila-ozturk-cv.pdf" download>CV indir <span aria-hidden="true">⇩</span></a><a class="button button-ghost" href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+<a class="button button-primary" href="#career-map">Keşfe başla <span aria-hidden="true">↓</span></a><button class="button button-ghost" type="button" data-open-book>3B Portfolyo <span aria-hidden="true">◫</span></button><a class="button button-ghost" href="rabia-dila-ozturk-cv.pdf" download>CV indir <span aria-hidden="true">⇩</span></a><a class="button button-ghost" href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
 </div>
 </div>
 <div class="hero-note">
@@ -338,6 +363,6 @@
 </div>
 <p>© <span id="year"></span> Rabia Dila Öztürk</p>
 </div></section>
-  </main><script src="assets/three.min.js"></script><script src="city-3d.js?v=20260821-9"></script><script src="assets/turkey-provinces.js"></script><script src="script.js?v=20260822-2"></script>
+  </main><script src="assets/three.min.js"></script><script src="portfolio-book.js?v=20260822-5"></script><script src="city-3d.js?v=20260821-9"></script><script src="assets/turkey-provinces.js"></script><script src="script.js?v=20260822-2"></script>
 </body>
 </html>
