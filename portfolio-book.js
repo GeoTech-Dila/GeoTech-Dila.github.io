@@ -34,7 +34,7 @@
   let dragStartX = 0;
   let dragProgress = 0;
   let animatingTurn = false;
-  let zoom = 1;
+  let zoom = 0.88;
   let fitCameraZ = 7;
   let pointerTargetX = 0;
   let pointerTargetY = 0;
@@ -46,6 +46,12 @@
   let orbitStartRotationY = 0;
   let targetRotationX = -0.34;
   let targetRotationY = 0;
+  let neonFrame;
+  let memoryBackdrop;
+  let memoryPulse = 0;
+  let memoryWorldIndex = -1;
+  const memoryWorlds = [];
+  const particleSystems = [];
 
   function createPageMaterial(side = THREE.FrontSide) {
     return new THREE.MeshBasicMaterial({
@@ -71,6 +77,339 @@
     mesh.position.set(x, 0, 0.165);
     mesh.receiveShadow = true;
     return mesh;
+  }
+
+  function memoryMaterial(color, opacity, lit = false) {
+    const Material = lit ? THREE.MeshStandardMaterial : THREE.MeshBasicMaterial;
+    const material = new Material({
+      color,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      toneMapped: lit
+    });
+    if (lit) {
+      material.roughness = .7;
+      material.metalness = .08;
+    }
+    material.userData.baseOpacity = opacity;
+    return material;
+  }
+
+  function addMemoryObject(world, object) {
+    object.traverse((child) => {
+      if (!child.material) return;
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      materials.forEach((material) => {
+        material.transparent = true;
+        material.depthWrite = false;
+        if (material.userData.baseOpacity == null) material.userData.baseOpacity = material.opacity;
+        material.opacity = 0;
+      });
+    });
+    world.add(object);
+    return object;
+  }
+
+  function memoryLine(points, color, opacity, closed = false) {
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false
+    });
+    material.userData.baseOpacity = opacity;
+    return closed ? new THREE.LineLoop(geometry, material) : new THREE.Line(geometry, material);
+  }
+
+  function createCoastalWorld(world) {
+    const coast = [];
+    for (let step = 0; step <= 36; step += 1) {
+      const y = -2.65 + step * .15;
+      coast.push(new THREE.Vector3(-4.18 - Math.sin(step * .42) * .24, y, .12));
+    }
+    addMemoryObject(world, memoryLine(coast, 0x7ad8dc, .72));
+    addMemoryObject(world, memoryLine(coast.map((point) => point.clone().add(new THREE.Vector3(-.11, 0, -.02))), 0xeaf7f2, .22));
+
+    [-1.82, 1.82].forEach((baseY, routeIndex) => {
+      const route = [];
+      for (let step = 0; step <= 52; step += 1) {
+        const x = -5.2 + step * .2;
+        route.push(new THREE.Vector3(x, baseY + Math.sin(step * .23 + routeIndex) * .12, .06));
+      }
+      addMemoryObject(world, memoryLine(route, routeIndex ? 0xff8066 : 0xe3e9e2, routeIndex ? .42 : .22));
+      addMemoryObject(world, memoryLine(route.map((point) => point.clone().add(new THREE.Vector3(0, .07, -.01))), 0xff9b85, .12));
+    });
+
+    const buildingData = [
+      [-4.28, -1.65, .48, 1.15], [-3.78, -.6, .64, 1.75], [-3.4, 1.02, .45, 1.2],
+      [3.25, -1.52, .52, 1.35], [3.72, -.12, .7, 2.05], [4.28, 1.15, .5, 1.48],
+      [-2.72, 2.02, .7, .52], [-1.72, 2.16, .92, .42], [1.62, 2.12, .88, .46], [2.68, 1.98, .64, .58]
+    ];
+    buildingData.forEach(([x, y, width, height], index) => {
+      const building = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, .34 + index % 2 * .1),
+        memoryMaterial(index % 3 === 1 ? 0xe26049 : index % 3 === 2 ? 0xb8dadd : 0xf3eee6, .24, true)
+      );
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(building.geometry),
+        memoryMaterial(index % 3 === 1 ? 0xff8a72 : 0xe8f1ed, .52)
+      );
+      building.add(edges);
+      building.position.set(x, y, .02 + index * .015);
+      building.rotation.z = (index % 2 ? 1 : -1) * .025;
+      addMemoryObject(world, building);
+    });
+
+    [-4.65, -3.55, 3.08, 4.58].forEach((x, index) => {
+      const tree = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.BoxGeometry(.035, .32, .035), memoryMaterial(0xffb19f, .5));
+      const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(.18, 0), memoryMaterial(0xb8d7c3, .42, true));
+      crown.scale.y = 1.16;
+      crown.position.y = .32;
+      tree.add(trunk, crown);
+      tree.position.set(x, index % 2 ? -2 : 2.05, .16);
+      addMemoryObject(world, tree);
+    });
+  }
+
+  function createWaterWorld(world) {
+    const riverPoints = [];
+    for (let step = 0; step <= 48; step += 1) {
+      const x = -5.4 + step * .225;
+      const y = 1.62 + Math.sin(step * .3) * .28 + Math.sin(step * .83) * .06;
+      riverPoints.push(new THREE.Vector3(x, y, .08));
+    }
+    [-.12, 0, .12].forEach((offset, index) => {
+      addMemoryObject(world, memoryLine(
+        riverPoints.map((point) => point.clone().add(new THREE.Vector3(0, offset, -index * .01))),
+        index === 1 ? 0x7ce3e7 : 0xbfeaec,
+        index === 1 ? .78 : .2
+      ));
+    });
+
+    [[-4.3, -1.8], [-3.55, -.95], [3.25, -1.65], [4.2, -.75], [4.55, .55]].forEach(([x, y], index) => {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(.16 + index % 2 * .035, .018, 8, 32),
+        memoryMaterial(index % 2 ? 0xff8a70 : 0xb7f0ee, .72)
+      );
+      ring.position.set(x, y, .14);
+      addMemoryObject(world, ring);
+    });
+
+    [[-4.55, -.65, .8, .45], [-3.72, -1.82, 1.08, .38], [3.65, -1.25, 1.18, .46], [4.35, .25, .72, .55]].forEach(([x, y, width, height], index) => {
+      const sector = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, .16),
+        memoryMaterial(index % 2 ? 0xd8e6ce : 0xe26049, .24, true)
+      );
+      sector.position.set(x, y, 0);
+      addMemoryObject(world, sector);
+    });
+  }
+
+  function createTerrainWorld(world) {
+    for (let layer = 0; layer < 9; layer += 1) {
+      const points = [];
+      const radiusX = 3.1 + layer * .25;
+      const radiusY = 1.25 + layer * .16;
+      for (let step = 0; step < 80; step += 1) {
+        const angle = (step / 80) * Math.PI * 2;
+        const variation = Math.sin(angle * 3 + layer) * .1 + Math.cos(angle * 5 - layer) * .045;
+        points.push(new THREE.Vector3(
+          Math.cos(angle) * (radiusX + variation),
+          Math.sin(angle) * (radiusY + variation),
+          -.08 - layer * .025
+        ));
+      }
+      addMemoryObject(world, memoryLine(points, layer % 3 === 0 ? 0xff8066 : 0xd5e2d6, layer % 3 === 0 ? .42 : .14, true));
+    }
+
+    [[-4.4, 1.62, .68, .3], [-3.55, 2.08, .9, .26], [3.45, 1.72, .82, .32], [4.35, 2.18, .66, .25], [-4.15, -2.05, .74, .28], [4.05, -2, .9, .3]].forEach(([x, y, width, height], index) => {
+      const terrace = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, .12 + index * .025),
+        memoryMaterial(index % 2 ? 0xe26049 : 0xcad8bf, .28, true)
+      );
+      terrace.position.set(x, y, .02);
+      terrace.rotation.z = (index % 2 ? 1 : -1) * .12;
+      addMemoryObject(world, terrace);
+    });
+  }
+
+  function createDataWorld(world) {
+    for (let layer = 0; layer < 5; layer += 1) {
+      const frame = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(6.4 + layer * .42, 2.65 + layer * .25, .035)),
+        memoryMaterial(layer % 2 ? 0x78d7da : 0xff8066, .18 + layer * .035)
+      );
+      frame.position.set((layer - 2) * .05, (layer - 2) * .07, -.12 - layer * .13);
+      frame.rotation.z = (layer - 2) * .012;
+      addMemoryObject(world, frame);
+    }
+
+    [-4.45, -3.92, -3.38, 3.35, 3.92, 4.48].forEach((x, index) => {
+      const height = .62 + (index * .47) % 1.55;
+      const column = new THREE.Mesh(
+        new THREE.BoxGeometry(.26, height, .26),
+        memoryMaterial(index % 3 === 0 ? 0xe26049 : index % 2 ? 0xb9dce0 : 0xf0ede4, .3, true)
+      );
+      column.position.set(x, -2.25 + height / 2, .06);
+      addMemoryObject(world, column);
+    });
+
+    const nodePositions = [];
+    for (let index = 0; index < 34; index += 1) {
+      const side = index % 2 ? 1 : -1;
+      nodePositions.push(side * (3.05 + (index * .27) % 1.8), -2.1 + (index * .49) % 4.25, .16);
+    }
+    const nodeGeometry = new THREE.BufferGeometry();
+    nodeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(nodePositions, 3));
+    const nodeMaterial = new THREE.PointsMaterial({
+      color: 0xffa18d,
+      size: .045,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false
+    });
+    nodeMaterial.userData.baseOpacity = .82;
+    addMemoryObject(world, new THREE.Points(nodeGeometry, nodeMaterial));
+  }
+
+  function createMemoryBackdrop() {
+    memoryBackdrop = new THREE.Group();
+    memoryBackdrop.position.z = -1.34;
+    const wall = new THREE.Mesh(
+      new THREE.PlaneGeometry(16, 9),
+      new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false })
+    );
+    wall.position.z = -.72;
+    memoryBackdrop.add(wall);
+
+    const ribbons = [
+      { color: 0xff705a, count: 360, phase: .2, width: .42, mode: 0, opacity: .92 },
+      { color: 0x75efad, count: 340, phase: 1.8, width: .38, mode: 1, opacity: .82 },
+      { color: 0xffb09f, count: 260, phase: 3.3, width: .28, mode: 2, opacity: .7 },
+      { color: 0x9be5bc, count: 280, phase: 4.7, width: .32, mode: 3, opacity: .72 },
+      { color: 0xff5f52, count: 240, phase: 5.8, width: .24, mode: 4, opacity: .88 },
+      { color: 0xff7863, count: 420, phase: 7.1, width: .36, mode: 5, opacity: .94 },
+      { color: 0x6ff3ae, count: 400, phase: 8.6, width: .34, mode: 6, opacity: .9 }
+    ];
+
+    function random(seed) {
+      const value = Math.sin(seed * 91.345 + 17.17) * 43758.5453;
+      return value - Math.floor(value);
+    }
+
+    ribbons.forEach((ribbon, ribbonIndex) => {
+      const positions = new Float32Array(ribbon.count * 3);
+      const sizes = new Float32Array(ribbon.count);
+      const phases = new Float32Array(ribbon.count);
+      const alphas = new Float32Array(ribbon.count);
+
+      for (let index = 0; index < ribbon.count; index += 1) {
+        const t = index / Math.max(1, ribbon.count - 1);
+        let x;
+        let y;
+        if (ribbon.mode === 0) {
+          x = -6.35 + t * 12.7;
+          y = -2.55 + t * 5.1 + Math.sin(t * Math.PI * 4.2) * .58;
+        } else if (ribbon.mode === 1) {
+          x = 6.2 - t * 12.4;
+          y = -1.7 + t * 3.45 + Math.cos(t * Math.PI * 3.1) * .72;
+        } else if (ribbon.mode === 2) {
+          x = -2.45 + Math.sin(t * Math.PI * 1.45) * 3.25;
+          y = -4.25 + t * 8.5;
+        } else if (ribbon.mode === 3) {
+          x = 2.5 + Math.cos(t * Math.PI * 1.55) * 2.65;
+          y = 4.15 - t * 8.3;
+        } else if (ribbon.mode === 4) {
+          x = -5.65 + t * 11.3;
+          y = .15 + Math.sin(t * Math.PI * 6.4) * 1.05;
+        } else if (ribbon.mode === 5) {
+          x = -6.25 + t * 12.5;
+          y = 2.25 + Math.sin(t * Math.PI * 3.5) * .42 + Math.cos(t * Math.PI * 8) * .12;
+        } else {
+          x = 6.2 - t * 12.4;
+          y = -2.28 + Math.cos(t * Math.PI * 3.8) * .38 + Math.sin(t * Math.PI * 7.2) * .13;
+        }
+
+        const spread = ribbon.width * (.28 + Math.sin(Math.PI * t) * .9);
+        const scatterX = (random(index + ribbonIndex * 401) - .5) * spread;
+        const scatterY = (random(index * 2.7 + ribbonIndex * 719) - .5) * spread;
+        positions[index * 3] = x + scatterX;
+        positions[index * 3 + 1] = y + scatterY;
+        positions[index * 3 + 2] = -.18 + random(index * 4.1 + ribbonIndex * 89) * .48;
+        sizes[index] = 1.85 + Math.pow(random(index * 7.9 + ribbonIndex * 31), 2.05) * 6.2;
+        phases[index] = ribbon.phase + t * 10 + random(index * 5.3) * 3;
+        alphas[index] = .28 + random(index * 11.7 + ribbonIndex) * .72;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+      geometry.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+      geometry.setAttribute('aAlpha', new THREE.BufferAttribute(alphas, 1));
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: { value: new THREE.Color(ribbon.color) },
+          uTime: { value: 0 },
+          uPulse: { value: 0 },
+          uOpacity: { value: ribbon.opacity }
+        },
+        vertexShader: `
+          uniform float uTime;
+          uniform float uPulse;
+          attribute float aSize;
+          attribute float aPhase;
+          attribute float aAlpha;
+          varying float vAlpha;
+          void main() {
+            vec3 animated = position;
+            animated.x += sin(uTime * .42 + aPhase) * .035;
+            animated.y += cos(uTime * .34 + aPhase * 1.31) * .035;
+            vec4 viewPosition = modelViewMatrix * vec4(animated, 1.0);
+            float twinkle = 1.0 + sin(uTime * 1.7 + aPhase * 2.2) * .16;
+            gl_PointSize = aSize * twinkle * (1.0 + uPulse * .72);
+            gl_Position = projectionMatrix * viewPosition;
+            vAlpha = aAlpha;
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 uColor;
+          uniform float uOpacity;
+          varying float vAlpha;
+          void main() {
+            float distanceToCenter = distance(gl_PointCoord, vec2(.5));
+            float core = 1.0 - smoothstep(.03, .24, distanceToCenter);
+            float glow = 1.0 - smoothstep(.08, .5, distanceToCenter);
+            float alpha = (core * .9 + glow * .72) * vAlpha * uOpacity;
+            if (alpha < .012) discard;
+            gl_FragColor = vec4(uColor, alpha);
+          }
+        `,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        depthTest: true,
+        toneMapped: false
+      });
+      const particles = new THREE.Points(geometry, material);
+      particles.rotation.z = (ribbonIndex - 2) * .025;
+      particles.userData.phase = ribbon.phase;
+      particleSystems.push(particles);
+      memoryBackdrop.add(particles);
+    });
+    scene.add(memoryBackdrop);
+  }
+
+  function updateMemoryScene(index) {
+    memoryWorldIndex = Math.floor(index / 12);
+    memoryPulse = 1;
   }
 
   function createTurn(direction) {
@@ -149,6 +488,7 @@
     const texture = await loadSpread(index);
     if (!texture || token !== buildToken) return;
     spreadIndex = index;
+    updateMemoryScene(index);
     setPageTexture(baseLeft, texture, 'left');
     setPageTexture(baseRight, texture, 'right');
     forwardTurn.visible = false;
@@ -269,6 +609,7 @@
     if (completed) {
       const texture = turn.userData.targetTexture;
       spreadIndex = turn.userData.targetIndex;
+      updateMemoryScene(spreadIndex);
       setPageTexture(baseLeft, texture, 'left');
       setPageTexture(baseRight, texture, 'right');
       forwardTurn.visible = false;
@@ -431,7 +772,7 @@
   function resetView() {
     targetRotationX = -0.34;
     targetRotationY = 0;
-    setZoom(1);
+    setZoom(0.88);
   }
 
   function resize() {
@@ -460,7 +801,7 @@
       powerPreference: 'high-performance',
       preserveDrawingBuffer: true
     });
-    renderer.setClearColor(0x070807, 1);
+    renderer.setClearColor(0x000000, 1);
     if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
     else if ('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.shadowMap.enabled = true;
@@ -468,7 +809,7 @@
     canvasHost.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x070807, 8, 23);
+    scene.fog = new THREE.Fog(0x000000, 8, 23);
     camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
     camera.position.set(0, 0.15, 7);
 
@@ -487,13 +828,84 @@
     book.rotation.z = 0.012;
     scene.add(book);
 
+    const coverGeometry = new THREE.BoxGeometry(PAGE_WIDTH * 2 + 0.22, PAGE_HEIGHT + 0.22, 0.18);
     const cover = new THREE.Mesh(
-      new THREE.BoxGeometry(PAGE_WIDTH * 2 + 0.22, PAGE_HEIGHT + 0.22, 0.18),
+      coverGeometry,
       new THREE.MeshStandardMaterial({ color: 0x8f2f2a, roughness: 0.72, metalness: 0.04 })
     );
     cover.position.z = -0.07;
     cover.receiveShadow = true;
     book.add(cover);
+
+    neonFrame = new THREE.Group();
+    const frameLayers = [
+      { scale: 1.002, color: 0xffe1d9, opacity: 1 },
+      { scale: 1.018, color: 0xff765c, opacity: .84 },
+      { scale: 1.052, color: 0xe26049, opacity: .48 },
+      { scale: 1.095, color: 0xd94f3d, opacity: .22 }
+    ];
+    neonFrame.userData.layers = frameLayers.map((layer, index) => {
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(coverGeometry),
+        new THREE.LineBasicMaterial({
+          color: layer.color,
+          transparent: true,
+          opacity: layer.opacity,
+          blending: index ? THREE.AdditiveBlending : THREE.NormalBlending,
+          depthWrite: false,
+          toneMapped: false
+        })
+      );
+      edges.scale.set(layer.scale, layer.scale, 1 + (layer.scale - 1) * 2);
+      edges.position.z = -0.07;
+      edges.renderOrder = 3 + index;
+      edges.userData.baseOpacity = layer.opacity;
+      neonFrame.add(edges);
+      return edges;
+    });
+    neonFrame.userData.glowBars = [];
+    const coverWidth = PAGE_WIDTH * 2 + 0.22;
+    const coverHeight = PAGE_HEIGHT + 0.22;
+    [
+      { thickness: .03, spread: .012, color: 0xffe0d8, opacity: 1 },
+      { thickness: .105, spread: .052, color: 0xff765c, opacity: .62 },
+      { thickness: .24, spread: .12, color: 0xe26049, opacity: .27 },
+      { thickness: .42, spread: .21, color: 0xd94f3d, opacity: .1 }
+    ].forEach((layer, layerIndex) => {
+      const material = new THREE.MeshBasicMaterial({
+        color: layer.color,
+        transparent: true,
+        opacity: layer.opacity,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false
+      });
+      const horizontalGeometry = new THREE.BoxGeometry(
+        coverWidth + layer.spread * 2,
+        layer.thickness,
+        .022
+      );
+      const verticalGeometry = new THREE.BoxGeometry(
+        layer.thickness,
+        coverHeight + layer.spread * 2,
+        .022
+      );
+      const top = new THREE.Mesh(horizontalGeometry, material);
+      const bottom = new THREE.Mesh(horizontalGeometry, material);
+      const left = new THREE.Mesh(verticalGeometry, material);
+      const right = new THREE.Mesh(verticalGeometry, material);
+      top.position.set(0, coverHeight / 2 + layer.spread, .035);
+      bottom.position.set(0, -coverHeight / 2 - layer.spread, .035);
+      left.position.set(-coverWidth / 2 - layer.spread, 0, .035);
+      right.position.set(coverWidth / 2 + layer.spread, 0, .035);
+      [top, bottom, left, right].forEach((bar) => {
+        bar.renderOrder = 2 + layerIndex;
+        bar.userData.baseOpacity = layer.opacity;
+        neonFrame.add(bar);
+        neonFrame.userData.glowBars.push(bar);
+      });
+    });
+    book.add(neonFrame);
 
     const pageBlock = new THREE.Mesh(
       new THREE.BoxGeometry(PAGE_WIDTH * 2 + 0.10, PAGE_HEIGHT + 0.10, 0.14),
@@ -508,6 +920,23 @@
     );
     spine.position.z = 0.055;
     book.add(spine);
+
+    const spineNeon = new THREE.Mesh(
+      new THREE.BoxGeometry(0.026, PAGE_HEIGHT + 0.11, 0.025),
+      new THREE.MeshBasicMaterial({
+        color: 0xff8a70,
+        transparent: true,
+        opacity: .86,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false
+      })
+    );
+    spineNeon.position.z = 0.192;
+    spineNeon.renderOrder = 6;
+    spineNeon.userData.baseOpacity = .86;
+    neonFrame.add(spineNeon);
+    neonFrame.userData.spine = spineNeon;
 
     baseLeft = createPageMesh(-PAGE_WIDTH / 2, createPageMaterial());
     baseRight = createPageMesh(PAGE_WIDTH / 2, createPageMaterial());
@@ -536,6 +965,29 @@
     if (!activeDirection) {
       book.rotation.y += (targetRotationY - book.rotation.y) * 0.11;
       book.rotation.x += (targetRotationX - book.rotation.x) * 0.11;
+    }
+    if (neonFrame) {
+      const pulse = .94 + Math.sin(performance.now() * .00135) * .06;
+      neonFrame.userData.layers.forEach((layer, index) => {
+        layer.material.opacity = layer.userData.baseOpacity * (pulse - index * .045);
+      });
+      neonFrame.userData.glowBars.forEach((bar, index) => {
+        bar.material.opacity = bar.userData.baseOpacity * (pulse - Math.floor(index / 4) * .04);
+      });
+      neonFrame.userData.spine.material.opacity = neonFrame.userData.spine.userData.baseOpacity * pulse;
+    }
+    if (memoryBackdrop) {
+      const now = performance.now();
+      memoryPulse *= .92;
+      particleSystems.forEach((particles, index) => {
+        particles.material.uniforms.uTime.value = now * .001;
+        particles.material.uniforms.uPulse.value = memoryPulse;
+        particles.rotation.z += Math.sin(now * .00018 + particles.userData.phase) * .000015;
+        particles.position.x = book.rotation.y * (.08 + index * .012);
+        particles.position.y = Math.sin(now * .00022 + index) * .035 - book.rotation.x * .018;
+      });
+      memoryBackdrop.rotation.z = book.rotation.y * -.012;
+      memoryBackdrop.position.x = book.rotation.y * .038;
     }
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
