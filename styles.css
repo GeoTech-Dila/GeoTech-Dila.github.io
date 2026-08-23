@@ -132,3 +132,16 @@
 .portfolio-hand.is-grabbing{transition:none}
 .portfolio-book-stage.is-dragging .portfolio-hand:not(.is-grabbing){opacity:.16}
 @media(max-width:800px){.portfolio-hand{width:145px}}
+
+/* Contextual page-turn cursor */
+.portfolio-book-cursor-hint{--cursor-x:50%;--cursor-y:50%;position:absolute;z-index:7;left:var(--cursor-x);top:var(--cursor-y);width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;transform:translateZ(0);transition:opacity .16s,visibility .16s}
+.portfolio-book-cursor-hint i{position:absolute;left:0;top:0;width:4px;height:4px;border:0;border-radius:50%;background:#fff3ef;box-shadow:0 0 7px 3px rgba(255,166,145,.94),0 0 20px 8px rgba(226,96,73,.56),0 0 38px 15px rgba(226,96,73,.2);transform:translate(-50%,-50%);animation:bookCursorGlow 1.15s ease-in-out infinite}
+.portfolio-book-cursor-hint i:before,.portfolio-book-cursor-hint i:after{content:"";position:absolute;left:50%;top:50%;background:rgba(255,218,207,.86);transform:translate(-50%,-50%)}
+.portfolio-book-cursor-hint i:before{width:18px;height:1px}
+.portfolio-book-cursor-hint i:after{width:1px;height:18px}
+.portfolio-book-cursor-hint span{position:absolute;left:22px;top:18px;width:max-content;padding:7px 10px;border:1px solid rgba(255,134,110,.6);background:rgba(8,9,8,.86);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;box-shadow:0 8px 22px rgba(0,0,0,.34);backdrop-filter:blur(8px)}
+.portfolio-book-stage.is-book-hover .portfolio-book-cursor-hint{opacity:1;visibility:visible}
+.portfolio-book-stage.is-dragging .portfolio-book-cursor-hint{opacity:0;visibility:hidden}
+@keyframes bookCursorGlow{50%{box-shadow:0 0 10px 4px rgba(255,181,162,1),0 0 26px 11px rgba(226,96,73,.66),0 0 46px 19px rgba(226,96,73,.25);transform:translate(-50%,-50%) scale(1.18)}}
+@media(max-width:800px){.portfolio-book-cursor-hint span{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.portfolio-book-cursor-hint i{animation:none}}
