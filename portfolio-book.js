@@ -7,8 +7,8 @@
   const TOTAL_PAGES = TOTAL_SPREADS * 2;
   const PAGE_WIDTH = 2.72;
   const PAGE_HEIGHT = 1.985;
-  const HAND_OPEN = 'assets/portfolio-book/hand-left.webp';
-  const HAND_GRAB = 'assets/portfolio-book/hand-grab-left.webp';
+  const HAND_OPEN = 'assets/portfolio-book/hand-left-v2.webp?v=20260823-2';
+  const HAND_GRAB = 'assets/portfolio-book/hand-grab-left-v2.webp?v=20260823-2';
   const textureLoader = new THREE.TextureLoader();
   const textureCache = new Map();
   const pageCounter = stage.querySelector('[data-book-pages]');
@@ -224,12 +224,14 @@
     const hand = direction === 'forward' ? rightHand : leftHand;
     hand.classList.add('is-grabbing');
     setHandPose(hand, true);
+    positionActiveHand();
     return true;
   }
 
   function setTurnProgress(progress) {
     dragProgress = Math.max(0, Math.min(1, progress));
     updateCurl(activeTurn(), dragProgress);
+    positionActiveHand();
   }
 
   function animateTurnTo(target) {
@@ -272,11 +274,66 @@
     animatingTurn = false;
   }
 
-  function moveHand(hand, clientX, clientY, side) {
-    const width = hand.getBoundingClientRect().width || 250;
-    const x = side === 'left' ? clientX - width * 0.82 : clientX - width * 0.18;
-    hand.style.setProperty('--hand-x', `${x}px`);
-    hand.style.setProperty('--hand-y', `${clientY - 28}px`);
+  function projectToStage(point) {
+    const rect = stage.getBoundingClientRect();
+    point.project(camera);
+    return {
+      x: (point.x * 0.5 + 0.5) * rect.width,
+      y: (-point.y * 0.5 + 0.5) * rect.height
+    };
+  }
+
+  function getBookCorner(side) {
+    if (!book || !camera) return null;
+    const point = new THREE.Vector3(side === 'left' ? -PAGE_WIDTH : PAGE_WIDTH, -PAGE_HEIGHT / 2, 0.24);
+    book.localToWorld(point);
+    return projectToStage(point);
+  }
+
+  function getTurningCorner() {
+    const turn = activeTurn();
+    if (!turn || !activeDirection) return null;
+    const positions = turn.userData.geometry.attributes.position;
+    const rowStart = positions.count - 41;
+    const index = activeDirection === 'forward' ? positions.count - 1 : rowStart;
+    const point = new THREE.Vector3(positions.getX(index), positions.getY(index), positions.getZ(index));
+    turn.localToWorld(point);
+    return projectToStage(point);
+  }
+
+  function placeHandAtContact(hand, contact, side, grabbing) {
+    if (!contact) return;
+    const rect = hand.getBoundingClientRect();
+    const width = rect.width || 250;
+    const height = rect.height || width * 1.48;
+    const anchorX = grabbing ? (side === 'left' ? 0.91 : 0.09) : (side === 'left' ? 0.86 : 0.14);
+    const anchorY = grabbing ? 0.105 : 0.045;
+    hand.style.setProperty('--hand-x', `${contact.x - width * anchorX}px`);
+    hand.style.setProperty('--hand-y', `${contact.y - height * anchorY}px`);
+  }
+
+  function positionActiveHand() {
+    if (!activeDirection) return;
+    const side = activeDirection === 'forward' ? 'right' : 'left';
+    placeHandAtContact(side === 'right' ? rightHand : leftHand, getTurningCorner(), side, true);
+  }
+
+  function positionIdleHand(hand, clientX, side) {
+    const corner = getBookCorner(side);
+    if (!corner) return;
+    const inward = side === 'left' ? 1 : -1;
+    const pointerOffset = Math.max(0, Math.min(34, Math.abs(clientX - corner.x) * 0.08));
+    placeHandAtContact(hand, {
+      x: corner.x + inward * pointerOffset,
+      y: corner.y + 10
+    }, side, false);
+  }
+
+  function positionRestingHands() {
+    const leftCorner = getBookCorner('left');
+    const rightCorner = getBookCorner('right');
+    if (leftCorner) placeHandAtContact(leftHand, { x: leftCorner.x - 18, y: leftCorner.y + 18 }, 'left', false);
+    if (rightCorner) placeHandAtContact(rightHand, { x: rightCorner.x + 18, y: rightCorner.y + 18 }, 'right', false);
   }
 
   function setHandPose(hand, grabbing) {
@@ -287,11 +344,10 @@
 
   function resetHands() {
     [leftHand, rightHand].forEach((hand) => {
-      hand.style.removeProperty('--hand-x');
-      hand.style.removeProperty('--hand-y');
       hand.classList.remove('is-following');
       setHandPose(hand, false);
     });
+    requestAnimationFrame(positionRestingHands);
   }
 
   function setZoom(nextZoom) {
@@ -324,6 +380,7 @@
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    if (initialized && !activeDirection) requestAnimationFrame(positionRestingHands);
   }
 
   async function init() {
@@ -400,6 +457,7 @@
     await applySpread(0);
     initialized = true;
     loading.classList.add('is-ready');
+    resetHands();
     animate();
   }
 
@@ -460,13 +518,12 @@
     if (activeDirection) {
       const distance = activeDirection === 'forward' ? dragStartX - event.clientX : event.clientX - dragStartX;
       setTurnProgress(distance / (stage.clientWidth * 0.56));
-      moveHand(activeDirection === 'forward' ? rightHand : leftHand, event.clientX, event.clientY, activeDirection === 'forward' ? 'right' : 'left');
       return;
     }
     const leftSide = event.clientX < stage.clientWidth / 2;
     leftHand.classList.toggle('is-following', leftSide);
     rightHand.classList.toggle('is-following', !leftSide);
-    moveHand(leftSide ? leftHand : rightHand, event.clientX, event.clientY, leftSide ? 'left' : 'right');
+    positionIdleHand(leftSide ? leftHand : rightHand, event.clientX, leftSide ? 'left' : 'right');
   });
 
   stage.addEventListener('pointerup', () => {

@@ -122,3 +122,13 @@
 .planning-board-grid-wide figcaption{background:#e9e8e3}
 .dark .planning-board-grid-wide figcaption{background:#2c302b}
 @media(max-width:800px){.planning-board-grid-wide{gap:18px}}
+
+/* Hands stay on the book's lower corners and travel with the turning page. */
+.portfolio-hand{width:clamp(145px,17vw,270px);transform-origin:50% 8%;transition:left .14s ease-out,top .14s ease-out,opacity .2s,filter .2s}
+.portfolio-hand-left{transform:none}
+.portfolio-hand-right{transform:scaleX(-1)}
+.portfolio-hand-left.is-pinching{transform:scale(.985)}
+.portfolio-hand-right.is-pinching{transform:scaleX(-1) scale(.985)}
+.portfolio-hand.is-grabbing{transition:none}
+.portfolio-book-stage.is-dragging .portfolio-hand:not(.is-grabbing){opacity:.16}
+@media(max-width:800px){.portfolio-hand{width:145px}}
