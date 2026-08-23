@@ -112,3 +112,13 @@
 .portfolio-book-stage.is-zoomed .portfolio-hand{opacity:.08}
 .map-route-note{display:grid;grid-template-columns:94px minmax(0,1fr);align-items:start;gap:22px;padding:15px 0 18px;border-top:1px solid rgba(255,255,255,.16);color:#c9cdc5}.map-route-note span{padding-top:3px;color:#f08168;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.6px}.map-route-note p{max-width:1050px;margin:0;font-size:13px;line-height:1.65}.dark .map-route-note{color:#c9cdc5}@media(max-width:800px){.map-route-note{grid-template-columns:1fr;gap:7px;padding:13px 0 15px}.map-route-note p{font-size:12px;line-height:1.55}}
 @media(max-width:800px){.portfolio-book-view-panel{right:4vw;bottom:68px;grid-template-columns:38px minmax(72px,1fr) 38px 48px;max-width:calc(92vw - 16px);gap:5px;padding:6px}.portfolio-book-view-panel button{width:38px;height:38px}.portfolio-book-progress{right:4vw}.portfolio-book-counter{bottom:25px}}
+
+/* Seven-project reel and readable full-width planning spreads. */
+.project-meter i{width:14.2857%}
+.planning-board-grid-wide{grid-template-columns:1fr;gap:28px}
+.planning-board-grid-wide>a:last-child:nth-child(odd){grid-column:auto}
+.planning-board-grid-wide figure{background:#111}
+.planning-board-grid-wide img{width:100%;height:auto;object-fit:contain}
+.planning-board-grid-wide figcaption{background:#e9e8e3}
+.dark .planning-board-grid-wide figcaption{background:#2c302b}
+@media(max-width:800px){.planning-board-grid-wide{gap:18px}}
