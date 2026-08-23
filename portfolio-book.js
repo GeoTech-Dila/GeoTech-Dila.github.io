@@ -16,6 +16,7 @@
   const loading = stage.querySelector('.portfolio-book-loading');
   const leftHand = stage.querySelector('.portfolio-hand-left');
   const rightHand = stage.querySelector('.portfolio-hand-right');
+  const cursorHint = stage.querySelector('.portfolio-book-cursor-hint');
   const zoomRange = stage.querySelector('[data-book-zoom]');
   const zoomValue = stage.querySelector('[data-book-zoom-value]');
 
@@ -173,6 +174,7 @@
     const positions = geometry.attributes.position;
     const original = geometry.userData.originalPositions;
     const lift = Math.sin(Math.PI * progress) * 0.62;
+    const normalOrientation = Math.cos(Math.PI * progress);
     for (let index = 0; index < positions.count; index += 1) {
       const originalX = original[index * 3];
       const originalY = original[index * 3 + 1];
@@ -181,13 +183,14 @@
       const baseArch = Math.sin(Math.PI * u) * 0.115 + u * 0.018;
       const paperArc = Math.sin(Math.PI * u) * lift * verticalCurve;
       const looseEdge = Math.sin(Math.PI * progress) * Math.pow(u, 2) * 0.13;
-      positions.setZ(index, baseArch + paperArc + looseEdge);
+      positions.setZ(index, (baseArch + paperArc + looseEdge) * normalOrientation);
     }
     positions.needsUpdate = true;
     geometry.computeVertexNormals();
     turn.rotation.y = (direction === 'forward' ? -1 : 1) * Math.PI * progress;
     turn.rotation.z = (direction === 'forward' ? 1 : -1) * Math.sin(Math.PI * progress) * 0.018;
-    turn.position.z = 0.185 + Math.sin(Math.PI * progress) * 0.075;
+    const landingLift = Math.pow(progress, 3) * 0.042;
+    turn.position.z = 0.185 + Math.sin(Math.PI * progress) * 0.075 + landingLift;
   }
 
   async function prepareTurn(direction) {
@@ -197,6 +200,9 @@
       setPageTexture(baseRight, next, 'right');
       setPageTexture(forwardTurn.userData.front, current, 'right');
       setPageTexture(forwardTurn.userData.back, next, 'left', true);
+      forwardTurn.userData.sourceTexture = current;
+      forwardTurn.userData.targetTexture = next;
+      forwardTurn.userData.targetIndex = spreadIndex + 1;
       forwardTurn.visible = true;
     } else {
       if (spreadIndex <= 0) return false;
@@ -204,6 +210,9 @@
       setPageTexture(baseLeft, previous, 'left');
       setPageTexture(backwardTurn.userData.front, current, 'left');
       setPageTexture(backwardTurn.userData.back, previous, 'right', true);
+      backwardTurn.userData.sourceTexture = current;
+      backwardTurn.userData.targetTexture = previous;
+      backwardTurn.userData.targetIndex = spreadIndex - 1;
       backwardTurn.visible = true;
     }
     return true;
@@ -239,12 +248,12 @@
     animatingTurn = true;
     const start = dragProgress;
     const startedAt = performance.now();
-    const duration = 360 + Math.abs(target - start) * 260;
+    const duration = 460 + Math.abs(target - start) * 340;
     const direction = activeDirection;
 
     function frame(now) {
       const linear = Math.min(1, (now - startedAt) / duration);
-      const eased = 1 - Math.pow(1 - linear, 3);
+      const eased = linear * linear * (3 - 2 * linear);
       setTurnProgress(start + (target - start) * eased);
       if (linear < 1) {
         requestAnimationFrame(frame);
@@ -255,15 +264,31 @@
     requestAnimationFrame(frame);
   }
 
-  async function finishTurn(completed, direction) {
+  function finishTurn(completed, direction) {
+    const turn = activeTurn();
     if (completed) {
-      await applySpread(spreadIndex + (direction === 'forward' ? 1 : -1));
+      const texture = turn.userData.targetTexture;
+      spreadIndex = turn.userData.targetIndex;
+      setPageTexture(baseLeft, texture, 'left');
+      setPageTexture(baseRight, texture, 'right');
+      forwardTurn.visible = false;
+      backwardTurn.visible = false;
+      resetTurnGeometry(forwardTurn);
+      resetTurnGeometry(backwardTurn);
+      updateCounter();
+      preloadAround(spreadIndex);
     } else {
-      const current = await loadSpread(spreadIndex);
-      setPageTexture(direction === 'forward' ? baseRight : baseLeft, current, direction === 'forward' ? 'right' : 'left');
-      activeTurn().visible = false;
-      resetTurnGeometry(activeTurn());
+      setPageTexture(
+        direction === 'forward' ? baseRight : baseLeft,
+        turn.userData.sourceTexture,
+        direction === 'forward' ? 'right' : 'left'
+      );
+      turn.visible = false;
+      resetTurnGeometry(turn);
     }
+    turn.userData.sourceTexture = null;
+    turn.userData.targetTexture = null;
+    turn.userData.targetIndex = null;
     leftHand.classList.remove('is-grabbing');
     rightHand.classList.remove('is-grabbing');
     setHandPose(leftHand, false);
@@ -288,6 +313,51 @@
     const point = new THREE.Vector3(side === 'left' ? -PAGE_WIDTH : PAGE_WIDTH, -PAGE_HEIGHT / 2, 0.24);
     book.localToWorld(point);
     return projectToStage(point);
+  }
+
+  function getBookScreenPolygon() {
+    if (!book || !camera) return [];
+    return [
+      [-PAGE_WIDTH, PAGE_HEIGHT / 2],
+      [PAGE_WIDTH, PAGE_HEIGHT / 2],
+      [PAGE_WIDTH, -PAGE_HEIGHT / 2],
+      [-PAGE_WIDTH, -PAGE_HEIGHT / 2]
+    ].map(([x, y]) => {
+      const point = new THREE.Vector3(x, y, 0.24);
+      book.localToWorld(point);
+      return projectToStage(point);
+    });
+  }
+
+  function pointInPolygon(point, polygon) {
+    let inside = false;
+    for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
+      const currentPoint = polygon[index];
+      const previousPoint = polygon[previous];
+      const crosses = (currentPoint.y > point.y) !== (previousPoint.y > point.y)
+        && point.x < ((previousPoint.x - currentPoint.x) * (point.y - currentPoint.y))
+          / (previousPoint.y - currentPoint.y) + currentPoint.x;
+      if (crosses) inside = !inside;
+    }
+    return inside;
+  }
+
+  function updateCursorHint(clientX, clientY) {
+    if (!cursorHint || orbiting) return;
+    const rect = stage.getBoundingClientRect();
+    const point = { x: clientX - rect.left, y: clientY - rect.top };
+    const normalizedX = point.x / rect.width;
+    const canTurnBackward = normalizedX < 0.43 && spreadIndex > 0;
+    const canTurnForward = normalizedX > 0.57 && spreadIndex < TOTAL_SPREADS - 1;
+    const overBook = (canTurnBackward || canTurnForward)
+      && pointInPolygon(point, getBookScreenPolygon());
+    cursorHint.style.setProperty('--cursor-x', `${point.x}px`);
+    cursorHint.style.setProperty('--cursor-y', `${point.y}px`);
+    stage.classList.toggle('is-book-hover', overBook);
+  }
+
+  function hideCursorHint() {
+    stage.classList.remove('is-book-hover');
   }
 
   function getTurningCorner() {
@@ -490,6 +560,7 @@
 
   stage.addEventListener('pointerdown', async (event) => {
     if (event.target.closest('button, input')) return;
+    hideCursorHint();
     const normalized = event.clientX / stage.clientWidth;
     const direction = normalized > 0.61 ? 'forward' : normalized < 0.39 ? 'backward' : null;
     if (!direction) {
@@ -508,6 +579,7 @@
   stage.addEventListener('pointermove', (event) => {
     pointerTargetX = (event.clientX / stage.clientWidth - 0.5) * 2;
     pointerTargetY = (event.clientY / stage.clientHeight - 0.5) * 2;
+    updateCursorHint(event.clientX, event.clientY);
     if (orbiting) {
       const deltaX = (event.clientX - orbitStartX) / stage.clientWidth;
       const deltaY = (event.clientY - orbitStartY) / stage.clientHeight;
@@ -543,7 +615,10 @@
     }
     if (activeDirection && !animatingTurn) animateTurnTo(0);
   });
-  stage.addEventListener('pointerleave', () => !activeDirection && resetHands());
+  stage.addEventListener('pointerleave', () => {
+    hideCursorHint();
+    if (!activeDirection) resetHands();
+  });
 
   document.querySelectorAll('[data-open-book]').forEach((button) => button.addEventListener('click', openBook));
   stage.querySelector('[data-close-book]')?.addEventListener('click', closeBook);
