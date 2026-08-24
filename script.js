@@ -500,4 +500,25 @@ const academicObserver = new IntersectionObserver((entries) => {
 }, { threshold: .18 });
 academicReveals.forEach((element) => academicObserver.observe(element));
 
+const cvFiles = [
+  { href: 'rabia-dila-ozturk-cv.pdf?v=20260825-2', name: 'Rabia_Dila_Ozturk_Modern_CV.pdf' },
+  { href: 'rabia-dila-ozturk-klasik-cv.pdf?v=20260825-1', name: 'Rabia_Dila_Ozturk_Klasik_CV.pdf' }
+];
+
+document.querySelectorAll('[data-download-cvs]').forEach((button) => {
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    cvFiles.forEach((file, index) => {
+      window.setTimeout(() => {
+        const download = document.createElement('a');
+        download.href = file.href;
+        download.download = file.name;
+        document.body.appendChild(download);
+        download.click();
+        download.remove();
+      }, index * 320);
+    });
+  });
+});
+
 updateGame();
