@@ -19,6 +19,25 @@
   const cursorHint = stage.querySelector('.portfolio-book-cursor-hint');
   const zoomRange = stage.querySelector('[data-book-zoom]');
   const zoomValue = stage.querySelector('[data-book-zoom-value]');
+  const analysisHud = stage.querySelector('.portfolio-analysis-hud');
+  const scanLine = stage.querySelector('.portfolio-scan-line');
+  const analysisProject = stage.querySelector('[data-analysis-project]');
+  const analysisLocation = stage.querySelector('[data-analysis-location]');
+  const analysisType = stage.querySelector('[data-analysis-type]');
+  const analysisTools = stage.querySelector('[data-analysis-tools]');
+
+  const ANALYSIS_PROFILES = [
+    { through: 1, project: 'GeoTech.D portfolyo seçkisi', location: 'Türkiye', analysis: 'Yetkinlik + Mekânsal yaklaşım', tools: 'QGIS · Python · CityEngine' },
+    { through: 4, project: 'Mesleki gelişim ve sertifikalar', location: 'İzmir', analysis: 'AR-GE + İklim + Tasarım', tools: 'Archify · Climathon' },
+    { through: 8, project: 'Python çalışmaları', location: 'Dijital çalışma alanı', analysis: 'Veri üretimi + Otomasyon', tools: 'Python · Jupyter' },
+    { through: 9, project: 'Şehir planlama proje seçkisi', location: 'İzmir + Sakarya', analysis: 'Stüdyo projeleri + Araştırma', tools: 'QGIS · Netcad · CityEngine' },
+    { through: 11, project: 'Şehir Planlama Projesi II', location: 'İzmir · Bayraklı', analysis: 'Alan analizi + Yerleşim planı', tools: 'QGIS · AutoCAD' },
+    { through: 23, project: 'Şehir Planlama Projesi III', location: 'İzmir · Selçuk', analysis: 'Üst ölçek + Mevcut durum + Sentez', tools: 'QGIS · Netcad · SPSS' },
+    { through: 31, project: 'Şehir Planlama Projesi IV', location: 'İzmir · Selçuk', analysis: 'Uygulama planı + 3B modelleme', tools: 'QGIS · AutoCAD · CityEngine' },
+    { through: 40, project: 'Su kaynaklarına duyarlı sektörel kalkınma', location: 'Sakarya', analysis: 'Su kaynakları + Sektör + Afet riski', tools: 'QGIS · SPSS · AutoCAD' },
+    { through: 45, project: 'TÜBİTAK 2209-A kentsel ısı adası', location: 'İzmir · Konak', analysis: 'Termal yüzey + Gölge + Yaya konforu', tools: 'Google Earth Engine · QGIS · CityEngine' },
+    { through: 47, project: 'Geleceğin kentleri için GeoTech.D', location: 'Akıllı kentler', analysis: 'Mekânsal planlama + Dijital çözüm', tools: 'QGIS · Python · CityEngine' }
+  ];
 
   let renderer;
   let scene;
@@ -52,6 +71,9 @@
   let memoryWorldIndex = -1;
   const memoryWorlds = [];
   const particleSystems = [];
+  let analysisProfileIndex = -1;
+  let analysisRefreshTimer;
+  const scanStartedAt = performance.now();
 
   function createPageMaterial(side = THREE.FrontSide) {
     return new THREE.MeshBasicMaterial({
@@ -483,12 +505,66 @@
     progressBar.style.width = `${(spreadIndex / (TOTAL_SPREADS - 1)) * 100}%`;
   }
 
+  function updateAnalysisProfile(index) {
+    if (!analysisHud) return;
+    const matchedIndex = ANALYSIS_PROFILES.findIndex((profile) => index <= profile.through);
+    const nextIndex = matchedIndex === -1 ? ANALYSIS_PROFILES.length - 1 : matchedIndex;
+    if (nextIndex === analysisProfileIndex) return;
+    analysisProfileIndex = nextIndex;
+    const profile = ANALYSIS_PROFILES[nextIndex];
+    analysisProject.textContent = profile.project;
+    analysisLocation.textContent = profile.location;
+    analysisType.textContent = profile.analysis;
+    analysisTools.textContent = profile.tools;
+    analysisHud.classList.remove('is-refreshing');
+    void analysisHud.offsetWidth;
+    analysisHud.classList.add('is-refreshing');
+    window.clearTimeout(analysisRefreshTimer);
+    analysisRefreshTimer = window.setTimeout(() => analysisHud.classList.remove('is-refreshing'), 620);
+  }
+
+  function screenPoint(x, y, z, width, height) {
+    const point = new THREE.Vector3(x, y, z).applyMatrix4(book.matrixWorld).project(camera);
+    return {
+      x: (point.x * .5 + .5) * width,
+      y: (-point.y * .5 + .5) * height
+    };
+  }
+
+  function updateAnalysisHud(now) {
+    if (!analysisHud || !scanLine || !book || !camera) return;
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    if (!width || !height) return;
+    book.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
+    const topLeft = screenPoint(-PAGE_WIDTH - .08, PAGE_HEIGHT / 2 + .08, .2, width, height);
+    const topRight = screenPoint(PAGE_WIDTH + .08, PAGE_HEIGHT / 2 + .08, .2, width, height);
+    const bottomLeft = screenPoint(-PAGE_WIDTH - .08, -PAGE_HEIGHT / 2 - .08, .2, width, height);
+    const bottomRight = screenPoint(PAGE_WIDTH + .08, -PAGE_HEIGHT / 2 - .08, .2, width, height);
+    const left = Math.max(10, Math.min(topLeft.x, bottomLeft.x));
+    const right = Math.min(width - 10, Math.max(topRight.x, bottomRight.x));
+    const top = Math.max(74, Math.min(topLeft.y, topRight.y));
+    const bottom = Math.min(height - 72, Math.max(bottomLeft.y, bottomRight.y));
+    const progress = ((now - scanStartedAt) % 5200) / 5200;
+    const scanY = top + (bottom - top) * (.04 + progress * .92);
+
+    scanLine.style.left = `${left}px`;
+    scanLine.style.top = `${scanY}px`;
+    scanLine.style.width = `${Math.max(0, right - left)}px`;
+    analysisHud.style.setProperty('--analysis-left', `${left + 8}px`);
+    analysisHud.style.setProperty('--analysis-right', `${right - 8}px`);
+    analysisHud.style.setProperty('--analysis-top', `${Math.max(82, top - 66)}px`);
+    analysisHud.style.setProperty('--analysis-bottom', `${Math.min(height - 58, bottom + 15)}px`);
+  }
+
   async function applySpread(index) {
     const token = ++buildToken;
     const texture = await loadSpread(index);
     if (!texture || token !== buildToken) return;
     spreadIndex = index;
     updateMemoryScene(index);
+    updateAnalysisProfile(index);
     setPageTexture(baseLeft, texture, 'left');
     setPageTexture(baseRight, texture, 'right');
     forwardTurn.visible = false;
@@ -610,6 +686,7 @@
       const texture = turn.userData.targetTexture;
       spreadIndex = turn.userData.targetIndex;
       updateMemoryScene(spreadIndex);
+      updateAnalysisProfile(spreadIndex);
       setPageTexture(baseLeft, texture, 'left');
       setPageTexture(baseRight, texture, 'right');
       forwardTurn.visible = false;
@@ -962,12 +1039,13 @@
 
   function animate() {
     if (!renderer) return;
+    const now = performance.now();
     if (!activeDirection) {
       book.rotation.y += (targetRotationY - book.rotation.y) * 0.11;
       book.rotation.x += (targetRotationX - book.rotation.x) * 0.11;
     }
     if (neonFrame) {
-      const pulse = .94 + Math.sin(performance.now() * .00135) * .06;
+      const pulse = .94 + Math.sin(now * .00135) * .06;
       neonFrame.userData.layers.forEach((layer, index) => {
         layer.material.opacity = layer.userData.baseOpacity * (pulse - index * .045);
       });
@@ -977,7 +1055,6 @@
       neonFrame.userData.spine.material.opacity = neonFrame.userData.spine.userData.baseOpacity * pulse;
     }
     if (memoryBackdrop) {
-      const now = performance.now();
       memoryPulse *= .92;
       particleSystems.forEach((particles, index) => {
         particles.material.uniforms.uTime.value = now * .001;
@@ -989,6 +1066,7 @@
       memoryBackdrop.rotation.z = book.rotation.y * -.012;
       memoryBackdrop.position.x = book.rotation.y * .038;
     }
+    updateAnalysisHud(now);
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }
