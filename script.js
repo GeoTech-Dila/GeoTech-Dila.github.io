@@ -501,8 +501,8 @@ const academicObserver = new IntersectionObserver((entries) => {
 academicReveals.forEach((element) => academicObserver.observe(element));
 
 const cvFiles = [
-  { href: 'rabia-dila-ozturk-cv.pdf?v=20260825-2', name: 'Rabia_Dila_Ozturk_Modern_CV.pdf' },
-  { href: 'rabia-dila-ozturk-klasik-cv.pdf?v=20260825-1', name: 'Rabia_Dila_Ozturk_Klasik_CV.pdf' }
+  { href: 'rabia-dila-ozturk-cv-tr.pdf?v=20260826-1', name: 'Rabia_Dila_Ozturk_Profesyonel_CV_TR.pdf' },
+  { href: 'rabia-dila-ozturk-cv-en.pdf?v=20260826-1', name: 'Rabia_Dila_Ozturk_Professional_CV_EN.pdf' }
 ];
 
 document.querySelectorAll('[data-download-cvs]').forEach((button) => {
