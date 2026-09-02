@@ -298,7 +298,7 @@ if (turkeyMap && window.TURKEY_PROVINCES) {
   selectStudyCity('İzmir');
 }
 
-const gameZones = ['about', 'university', 'experience', 'projects', 'certificates', 'contact'];
+const gameZones = ['about', 'university', 'experience', 'experience2', 'projects', 'certificates', 'contact'];
 const mapNodes = [...document.querySelectorAll('.map-node')];
 const gameSections = [...document.querySelectorAll('.game-section')];
 const mapPlayer = document.getElementById('map-player');
@@ -313,14 +313,16 @@ const mobilePositions = {
   about: [18, 82],
   university: [31, 69],
   experience: [43, 57],
-  projects: [66, 46],
-  certificates: [34, 31],
-  contact: [74, 16]
+  experience2: [62, 52],
+  projects: [70, 39],
+  certificates: [42, 27],
+  contact: [78, 14]
 };
 const zoneTitles = {
   about: 'Hakkımda',
   university: 'Üniversite',
   experience: 'Deneyim',
+  experience2: 'Çalışma Hayatı',
   projects: 'Projeler',
   certificates: 'Başarılar',
   contact: 'İletişim'
@@ -329,6 +331,7 @@ const mapStopNames = {
   about: "Dila'nın Evi",
   university: 'Dokuz Eylül Üniversitesi',
   experience: 'Deneyim Müzesi',
+  experience2: 'Deneyim Müzesi 2',
   projects: 'Projeler Ticaret Merkezi',
   certificates: 'Başarıya Giden Yol',
   contact: 'Bağlantı Direği'

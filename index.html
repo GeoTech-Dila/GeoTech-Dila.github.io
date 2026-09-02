@@ -8,7 +8,7 @@
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/portfolio-book/hand-left-v2.webp?v=20260823-2" as="image">
 <link rel="preload" href="assets/portfolio-book/hand-grab-left-v2.webp?v=20260823-2" as="image">
-<link rel="stylesheet" href="styles.css?v=20260902-1">
+<link rel="stylesheet" href="styles.css?v=20260902-2">
 </head>
 <body>
   <header class="site-header"><a class="brand" href="#top" aria-label="GeoTech.D ana sayfa"><span class="brand-mark" aria-hidden="true">GeoTech<span class="brand-dot">.D</span></span></a><nav aria-label="Ana menü"><a href="#career-map">Harita</a><a href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub</a><button class="nav-portfolio" type="button" data-open-book>Portfolyo</button><button class="nav-cv" type="button" data-open-cv-dialog>CV</button></nav><button class="theme-toggle" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><span aria-hidden="true">◐</span></button></header>
@@ -96,12 +96,12 @@
     <section class="game-map" id="career-map" aria-labelledby="map-title">
       <header class="map-hud">
         <div><p class="map-kicker">Kariyer rotası</p><h2 id="map-title">Dila'nın keşif haritası</h2></div>
-        <div class="map-progress" aria-label="Keşif ilerlemesi"><span id="map-score">0 / 6</span><div><i id="map-progress-fill"></i></div></div>
+        <div class="map-progress" aria-label="Keşif ilerlemesi"><span id="map-score">0 / 7</span><div><i id="map-progress-fill"></i></div></div>
         <button class="map-reset" type="button" aria-label="Harita ilerlemesini sıfırla" title="İlerlemeyi sıfırla">↺</button>
       </header>
       <aside class="map-route-note" aria-label="Keşif rotası hakkında">
         <span>Rota notu</span>
-        <p>Keşif rotası, ilk adım olan Dila'nın Evi'ndeki Hakkımda bölümüyle başlar. Her yerleşime ulaşıldığında sıra numarasını takip eden yol ağı adım adım oluşur; güzergâh, başarıya giden yolda bana destek olan kazanım ve sertifikalarımı taşıyan Sertifikalarım durağından geçerek son durak Bağlantı Direği'ndeki İletişim noktasına ulaşır.</p>
+        <p>Keşif rotası, Dila'nın Evi'ndeki Hakkımda bölümüyle başlar. Üniversite ve Deneyim Müzesi'nin ardından ikinci müze, özel şehircilik bürosundaki çalışma hayatı tecrübelerimi açar. Sıra numaralarını izleyerek oluşan yol; projelerden, bana destek olan sertifikalardan geçer ve Bağlantı Direği'ndeki İletişim noktasına ulaşır.</p>
       </aside>
       <div class="map-stage city-3d-active" aria-label="Döndürülebilir üç boyutlu kariyer kenti">
         <div class="city-scene" id="city-scene" aria-hidden="true"></div>
@@ -111,9 +111,10 @@
         <button class="map-node is-available" type="button" data-zone="about" data-x="18" data-y="74" style="--x:18%;--y:74%"><span>01</span><strong>Dila'nın Evi<br><small>Hakkımda</small></strong></button>
         <button class="map-node" type="button" data-zone="university" data-x="30" data-y="48" style="--x:30%;--y:48%" disabled><span>02</span><strong>Dokuz Eylül<br><small>Üniversite Kampüsü</small></strong></button>
         <button class="map-node" type="button" data-zone="experience" data-x="42" data-y="34" style="--x:42%;--y:34%" disabled><span>03</span><strong>Deneyim Müzesi</strong></button>
-        <button class="map-node" type="button" data-zone="projects" data-x="56" data-y="51" style="--x:56%;--y:51%" disabled><span>04</span><strong>Projeler<br><small>Ticaret Merkezi</small></strong></button>
-        <button class="map-node" type="button" data-zone="certificates" data-x="73" data-y="45" style="--x:73%;--y:45%" disabled><span>05</span><strong>Başarıya Giden Yol<br><small>Sertifikalarım</small></strong></button>
-        <button class="map-node" type="button" data-zone="contact" data-x="87" data-y="17" style="--x:87%;--y:17%" disabled><span>06</span><strong>Bağlantı Direği<br><small>İletişim</small></strong></button>
+        <button class="map-node" type="button" data-zone="experience2" data-x="55" data-y="25" style="--x:55%;--y:25%" disabled><span>04</span><strong>Deneyim Müzesi 2<br><small>Çalışma Hayatı</small></strong></button>
+        <button class="map-node" type="button" data-zone="projects" data-x="62" data-y="51" style="--x:62%;--y:51%" disabled><span>05</span><strong>Projeler<br><small>Ticaret Merkezi</small></strong></button>
+        <button class="map-node" type="button" data-zone="certificates" data-x="76" data-y="45" style="--x:76%;--y:45%" disabled><span>06</span><strong>Başarıya Giden Yol<br><small>Sertifikalarım</small></strong></button>
+        <button class="map-node" type="button" data-zone="contact" data-x="89" data-y="17" style="--x:89%;--y:17%" disabled><span>07</span><strong>Bağlantı Direği<br><small>İletişim</small></strong></button>
       </div>
       <footer class="map-status"><p id="map-status">Sıradaki durak: Hakkımda</p><span id="map-badge">Keşif 0%</span></footer>
     </section>
@@ -208,7 +209,29 @@
 </div></div>
 </div></section>
 
-    <section class="game-section is-locked projects section" id="projeler" data-zone="projects" hidden><div class="section-label">04 / Seçili çalışmalar</div>
+    <section class="game-section is-locked work-life section" id="calisma-hayati" data-zone="experience2" hidden><div class="section-label">04 / Çalışma hayatı deneyimleri ve tecrübeleri</div>
+<div class="work-life-heading">
+<div><p class="map-kicker">Deneyim Müzesi 2 · Özel şehircilik bürosu</p><h2>Planlama kararının<br>üretim tarafı.</h2></div>
+<p>ORALL Şehircilik ve Mimarlık Ofisi'ndeki çalışma sürecimde raporlama, veri analizi, proje teslimi ve teknik değerlendirme adımlarını birlikte yürüttüm.</p>
+</div>
+<div class="work-life-summary">
+<article><span>POZİSYON</span><strong>Yetkili Şehir Plancısı</strong><p>İzmir · Temmuz 2025 — Bugün</p></article>
+<article><span>PROJE TESLİMİ</span><strong>04</strong><p>Aktif görev aldığım tamamlanmış proje teslimleri</p></article>
+<article><span>ÇALIŞMA EKSENİ</span><strong>Rapor + Veri</strong><p>Ulaşım, seyahat modeli ve planlama değerlendirmesi</p></article>
+</div>
+<div class="work-life-archive">
+<header><span>SEÇİLİ ÇALIŞMA İÇERİKLERİ</span><h3>Ofis pratiğinden dört üretim alanı</h3></header>
+<div class="work-life-grid">
+<article><span>01</span><div><p>ULAŞIM VE GÜZERGÂH</p><h4>Danışmanlık raporları</h4><small>Güzergâh ve ulaşım kararlarının teknik raporlar üzerinden değerlendirilmesi ve sunuma hazırlanması.</small></div></article>
+<article><span>02</span><div><p>MEKÂNSAL VERİ</p><h4>Veri üretimi ve kontrolü</h4><small>Planlama çalışmalarında kullanılan verilerin düzenlenmesi, karşılaştırılması ve karar sürecine aktarılması.</small></div></article>
+<article><span>03</span><div><p>SPSS</p><h4>Toplu taşıma seyahat modelleri</h4><small>Toplu taşıma hareketlerinin istatistiksel olarak incelenmesi ve seyahat modellerinin geliştirilmesi.</small></div></article>
+<article><span>04</span><div><p>TEKNİK DEĞERLENDİRME</p><h4>Planlama ve dava dosyaları</h4><small>Planlama kararlarının teknik çerçevede incelenmesi ve dava dosyaları kapsamında değerlendirilmesi.</small></div></article>
+</div>
+</div>
+<footer class="work-life-footer"><span>ORALL / İZMİR</span><p>Çalışma görselleri, rapor parçaları ve proje çıktıları bu arşivde genişletilebilir.</p></footer>
+</section>
+
+    <section class="game-section is-locked projects section" id="projeler" data-zone="projects" hidden><div class="section-label">05 / Seçili çalışmalar</div>
 <div class="section-heading">
 <h2>Veriyle şekillenen projeler</h2>
 <p>Analiz paftalarından canlı haritalara uzanan seçili veri ve planlama çalışmaları.</p>
@@ -384,7 +407,7 @@
       </div>
     </dialog>
 
-    <section class="game-section is-locked recognition section" id="sertifikalar" data-zone="certificates" hidden><div class="section-label">05 / Sertifikalar &amp; başarılar</div>
+    <section class="game-section is-locked recognition section" id="sertifikalar" data-zone="certificates" hidden><div class="section-label">06 / Sertifikalar &amp; başarılar</div>
 <div class="section-heading">
 <h2>Sürekli öğrenme, ölçülebilir çıktı</h2>
 <p>CBS, yazılım, araştırma ve iklim odağındaki eğitim ve programlar.</p>
@@ -423,7 +446,7 @@
 </div>
 </div></section>
 
-    <section class="game-section is-locked contact section" id="iletisim" data-zone="contact" hidden><div class="section-label">06 / İletişim</div>
+    <section class="game-section is-locked contact section" id="iletisim" data-zone="contact" hidden><div class="section-label">07 / İletişim</div>
 <p class="eyebrow">Yeni bir proje veya iş birliği için</p>
 <h2>Harita üzerinde<br>yeni bir iz bırakalım.</h2>
 <a class="contact-mail" href="mailto:ozturkdila670@gmail.com">ozturkdila670@gmail.com <span aria-hidden="true">↗</span></a>
@@ -438,6 +461,6 @@
 </div>
 <p>© <span id="year"></span> Rabia Dila Öztürk</p>
 </div></section>
-  </main><script src="assets/three.min.js"></script><script src="portfolio-book.js?v=20260825-20"></script><script src="city-3d.js?v=20260821-9"></script><script src="hero-smart-city.js?v=20260824-10"></script><script src="assets/turkey-provinces.js"></script><script src="script.js?v=20260902-1"></script>
+  </main><script src="assets/three.min.js"></script><script src="portfolio-book.js?v=20260825-20"></script><script src="city-3d.js?v=20260902-2"></script><script src="hero-smart-city.js?v=20260824-10"></script><script src="assets/turkey-provinces.js"></script><script src="script.js?v=20260902-2"></script>
 </body>
 </html>

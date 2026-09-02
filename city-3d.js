@@ -255,6 +255,7 @@
     about: new THREE.Vector3(-7.2, .6, -3.2),
     university: new THREE.Vector3(-8.9, .6, 1.8),
     experience: new THREE.Vector3(-3.8, .6, 3.7),
+    experience2: new THREE.Vector3(2.25, .6, 4.65),
     projects: new THREE.Vector3(.5, .6, -.5),
     certificates: new THREE.Vector3(5.1, .6, -3.1),
     contact: new THREE.Vector3(7.4, .6, 3.2)
@@ -263,6 +264,7 @@
     about: new THREE.Vector3(-7.2, 3.2, -3.2),
     university: new THREE.Vector3(-8.9, 5.05, 1.8),
     experience: new THREE.Vector3(-3.8, 4.1, 3.7),
+    experience2: new THREE.Vector3(2.25, 4.45, 4.65),
     projects: new THREE.Vector3(.5, 6.5, -.5),
     certificates: new THREE.Vector3(5.1, 2.8, -3.1),
     contact: new THREE.Vector3(7.4, 6.1, 3.2)
@@ -275,7 +277,7 @@
     [5.1, -4.75], [6.8, -4.5], [8.75, -2.2], [9.1, .4],
     [8.9, 2.1], [8.7, 3.2]
   ];
-  const routeStopProgress = [0, 3 / 17, 6 / 17, 9 / 17, 12 / 17, 1];
+  const routeStopProgress = [0, 3 / 17, 6 / 17, 8 / 17, 9 / 17, 12 / 17, 1];
   const routeRoad = curvedRoad(city, routePoints);
   const routeRoadCurve = routeRoad.curve;
   const routeRevealMeshes = routeRoad.meshes;
@@ -329,6 +331,24 @@
   museum.add(museumRing);
   city.add(museum);
 
+  const workMuseum = new THREE.Group();
+  workMuseum.position.copy(landmarkPositions.experience2);
+  box(workMuseum, [3.65, .3, 2.75], [0, .25, 0], materials.concrete);
+  box(workMuseum, [3.2, 1.7, 2.3], [0, 1.18, .05], materials.dark);
+  box(workMuseum, [3.35, .16, 2.45], [0, 2.12, .02], materials.coral);
+  box(workMuseum, [2.55, 1.12, .08], [0, 1.22, -1.14], materials.glass);
+  [-1.05, -.52, 0, .52, 1.05].forEach((x) => box(workMuseum, [.06, 1.08, .1], [x, 1.22, -1.18], materials.paper));
+  box(workMuseum, [.68, .92, .1], [1.12, .82, -1.2], materials.coral);
+  [-1.35, 1.35].forEach((x) => {
+    beam(workMuseum, [x, 2.18, -1.0], [x, 3.0, -1.0], .045, materials.paper);
+    beam(workMuseum, [x, 3.0, -1.0], [0, 3.35, -1.0], .045, materials.coral);
+  });
+  const workMuseumRing = new THREE.Mesh(new THREE.TorusGeometry(.68, .055, 8, 40), materials.green);
+  workMuseumRing.position.set(0, 3.37, -1.0);
+  workMuseumRing.rotation.x = Math.PI / 2;
+  workMuseum.add(workMuseumRing);
+  city.add(workMuseum);
+
   const trade = new THREE.Group();
   trade.position.copy(landmarkPositions.projects);
   box(trade, [4.8, .34, 4.2], [0, .25, 0], materials.concrete);
@@ -377,7 +397,7 @@
 
   const backgroundBuildings = [
     [-10.4, 5.2, 1.05, 1.0, 2.2, materials.blue], [-7.4, 5.8, 1.0, .9, 2.7, materials.dark],
-    [-.8, 7.6, 1.2, 1.25, 2.1, materials.green], [5.3, 5.8, 1.3, 1.0, 3.0, materials.blue],
+    [-.8, 7.6, 1.2, 1.25, 2.1, materials.green], [6.2, 6.8, 1.3, 1.0, 3.0, materials.blue],
     [8.8, -1.0, 1.15, 1.3, 2.65, materials.dark], [2.1, -5.7, 1.25, 1.1, 2.2, materials.green],
     [-3.3, -5.8, 1.3, 1.2, 2.75, materials.blue], [-10.2, -1.0, 1.0, .9, 1.65, materials.gold]
   ];
@@ -387,8 +407,8 @@
   });
   [[-10, -4], [-9, -5], [-6, 6], [-1, -7], [4, 6], [9, 5], [10, 2], [7, -6], [3.8, -5.3]].forEach(([x, z], index) => tree(city, x, z, .68 + (index % 3) * .1));
 
-  [house, university, museum, trade, certificates, mast].forEach((group, index) => {
-    const zone = ['about', 'university', 'experience', 'projects', 'certificates', 'contact'][index];
+  [house, university, museum, workMuseum, trade, certificates, mast].forEach((group, index) => {
+    const zone = ['about', 'university', 'experience', 'experience2', 'projects', 'certificates', 'contact'][index];
     group.traverse((object) => {
       if (object.isMesh) object.userData.zone = zone;
     });
@@ -597,6 +617,7 @@
     routeOrb.position.copy(routeCurve.getPoint(THREE.MathUtils.clamp(routeProgress, 0, 1)));
     routeOrb.position.y += Math.sin(elapsed * 3) * .08;
     museumRing.rotation.z = elapsed * .35;
+    workMuseumRing.rotation.z = -elapsed * .28;
     campusHalo.rotation.z = elapsed * .22;
     campusHalo.material.opacity = .5 + Math.sin(elapsed * 2.1) * .18;
     signalRings.forEach((ring, index) => {
