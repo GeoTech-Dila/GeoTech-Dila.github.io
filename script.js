@@ -144,7 +144,7 @@ const studyCities = {
   'Konya': {
     index: '03 / 04', code: 'KO', coordinates: [32.4846, 37.8746],
     type: 'Canlı harita · Afet ve dirençlilik verisi',
-    text: 'Koruma, izleme ve acil durum verilerini katmanlı bir harita deneyiminde buluşturan KOR-İZ çalışmasının kapsadığı bölge.',
+    text: 'Üç kişilik bir ekip çalışması olarak geliştirilen KOR-İZ; koruma, izleme ve acil durum verilerini katmanlı bir harita deneyiminde buluşturan karar destek çalışmasıdır.',
     tools: ['Mekânsal veri', 'Katman analizi', 'Karar desteği'],
     actions: '<a href="https://we-konya-webgis.vercel.app" target="_blank" rel="noreferrer">Canlı haritayı aç ↗</a><button type="button" data-slide-index="4">Sunumda gör ↗</button>'
   },
