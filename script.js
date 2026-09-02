@@ -500,25 +500,22 @@ const academicObserver = new IntersectionObserver((entries) => {
 }, { threshold: .18 });
 academicReveals.forEach((element) => academicObserver.observe(element));
 
-const cvFiles = [
-  { href: 'rabia-dila-ozturk-cv-tr.pdf?v=20260826-1', name: 'Rabia_Dila_Ozturk_Profesyonel_CV_TR.pdf' },
-  { href: 'rabia-dila-ozturk-cv-en.pdf?v=20260826-1', name: 'Rabia_Dila_Ozturk_Professional_CV_EN.pdf' }
-];
+const cvPicker = document.querySelector('#cv-picker');
 
-document.querySelectorAll('[data-download-cvs]').forEach((button) => {
-  button.addEventListener('click', (event) => {
-    event.preventDefault();
-    cvFiles.forEach((file, index) => {
-      window.setTimeout(() => {
-        const download = document.createElement('a');
-        download.href = file.href;
-        download.download = file.name;
-        document.body.appendChild(download);
-        download.click();
-        download.remove();
-      }, index * 320);
-    });
+document.querySelectorAll('[data-open-cv-dialog]').forEach((button) => {
+  button.addEventListener('click', () => {
+    if (!cvPicker?.open) cvPicker?.showModal();
+    document.body.classList.add('cv-picker-open');
   });
+});
+
+document.querySelector('[data-close-cv-dialog]')?.addEventListener('click', () => cvPicker?.close());
+cvPicker?.addEventListener('click', (event) => {
+  if (event.target === cvPicker) cvPicker.close();
+});
+cvPicker?.addEventListener('close', () => document.body.classList.remove('cv-picker-open'));
+cvPicker?.querySelectorAll('a[download]').forEach((link) => {
+  link.addEventListener('click', () => window.setTimeout(() => cvPicker.close(), 120));
 });
 
 updateGame();

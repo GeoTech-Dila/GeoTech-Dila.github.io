@@ -8,10 +8,27 @@
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/portfolio-book/hand-left-v2.webp?v=20260823-2" as="image">
 <link rel="preload" href="assets/portfolio-book/hand-grab-left-v2.webp?v=20260823-2" as="image">
-<link rel="stylesheet" href="styles.css?v=20260825-19">
+<link rel="stylesheet" href="styles.css?v=20260902-1">
 </head>
 <body>
-  <header class="site-header"><a class="brand" href="#top" aria-label="GeoTech.D ana sayfa"><span class="brand-mark" aria-hidden="true">GeoTech<span class="brand-dot">.D</span></span></a><nav aria-label="Ana menü"><a href="#career-map">Harita</a><a href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub</a><button class="nav-portfolio" type="button" data-open-book>Portfolyo</button><a href="rabia-dila-ozturk-cv-tr.pdf?v=20260826-1" download data-download-cvs title="Türkçe ve İngilizce CV'leri indir">CV</a></nav><button class="theme-toggle" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><span aria-hidden="true">◐</span></button></header>
+  <header class="site-header"><a class="brand" href="#top" aria-label="GeoTech.D ana sayfa"><span class="brand-mark" aria-hidden="true">GeoTech<span class="brand-dot">.D</span></span></a><nav aria-label="Ana menü"><a href="#career-map">Harita</a><a href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub</a><button class="nav-portfolio" type="button" data-open-book>Portfolyo</button><button class="nav-cv" type="button" data-open-cv-dialog>CV</button></nav><button class="theme-toggle" type="button" aria-label="Temayı değiştir" title="Temayı değiştir"><span aria-hidden="true">◐</span></button></header>
+  <dialog class="cv-picker" id="cv-picker" aria-labelledby="cv-picker-title">
+    <div class="cv-picker-shell">
+      <header class="cv-picker-topbar"><span>GeoTech.D / CV ARŞİVİ</span><strong>03 DOSYA</strong><button type="button" data-close-cv-dialog aria-label="CV seçim penceresini kapat" title="Kapat">×</button></header>
+      <div class="cv-picker-heading"><p>PROFESYONEL PROFİL</p><h2 id="cv-picker-title">CV Seçkisi</h2></div>
+      <div class="cv-picker-options">
+        <a class="cv-picker-option" href="rabia-dila-ozturk-cv-klasik.pdf?v=20260902-1" download="Rabia_Dila_Ozturk_Klasik_CV.pdf">
+          <span class="cv-picker-index">01</span><span class="cv-picker-copy"><strong>Klasik CV</strong><small>Klasik yöntemle hazırlanmış CV</small></span><span class="cv-picker-meta">TR · PDF</span><i aria-hidden="true">⇩</i>
+        </a>
+        <a class="cv-picker-option" href="rabia-dila-ozturk-cv-en.pdf?v=20260902-1" download="Rabia_Dila_Ozturk_Professional_CV_EN.pdf">
+          <span class="cv-picker-index">02</span><span class="cv-picker-copy"><strong>Professional Resume / CV</strong><small>ATS uyumlu, sade, profesyonel ve İngilizce hazırlanmış Resume/CV</small></span><span class="cv-picker-meta">EN · PDF</span><i aria-hidden="true">⇩</i>
+        </a>
+        <a class="cv-picker-option" href="rabia-dila-ozturk-cv-tr.pdf?v=20260902-1" download="Rabia_Dila_Ozturk_Profesyonel_CV_TR.pdf">
+          <span class="cv-picker-index">03</span><span class="cv-picker-copy"><strong>Profesyonel CV</strong><small>ATS uyumlu, sade, profesyonel CV</small></span><span class="cv-picker-meta">TR · PDF</span><i aria-hidden="true">⇩</i>
+        </a>
+      </div>
+    </div>
+  </dialog>
   <div class="scene-transition" id="scene-transition" aria-hidden="true"><i></i><strong id="scene-transition-title"></strong><span>Keşif rotası</span></div>
   <section class="portfolio-book-stage" id="portfolio-book" aria-label="Üç boyutlu portfolyo kitabı" aria-hidden="true" hidden>
     <div class="portfolio-book-canvas" id="portfolio-book-canvas"></div>
@@ -69,7 +86,7 @@
 <p class="hero-role">Şehir Plancısı · Spatial Data Analyst · Veri Üreticisi</p>
 <p class="hero-copy">Mekânsal veriyi üretiyor, analiz ediyor ve erişilebilir, sürdürülebilir, insan odaklı kent kararları için görünür hale getiriyorum.</p>
 <div class="hero-actions">
-<a class="button button-primary" href="#career-map">Keşfe başla <span aria-hidden="true">↓</span></a><button class="button button-ghost" type="button" data-open-book>3B Portfolyo <span aria-hidden="true">◫</span></button><a class="button button-ghost" href="rabia-dila-ozturk-cv-tr.pdf?v=20260826-1" download data-download-cvs title="Türkçe ve İngilizce CV'leri indir">CV'leri indir <span aria-hidden="true">⇩</span></a><a class="button button-ghost" href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+<a class="button button-primary" href="#career-map">Keşfe başla <span aria-hidden="true">↓</span></a><button class="button button-ghost" type="button" data-open-book>3B Portfolyo <span aria-hidden="true">◫</span></button><button class="button button-ghost" type="button" data-open-cv-dialog>CV seçenekleri <span aria-hidden="true">⇩</span></button><a class="button button-ghost" href="https://github.com/GeoTech-Dila" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
 </div>
 </div>
 <div class="hero-note">
@@ -421,6 +438,6 @@
 </div>
 <p>© <span id="year"></span> Rabia Dila Öztürk</p>
 </div></section>
-  </main><script src="assets/three.min.js"></script><script src="portfolio-book.js?v=20260825-20"></script><script src="city-3d.js?v=20260821-9"></script><script src="hero-smart-city.js?v=20260824-10"></script><script src="assets/turkey-provinces.js"></script><script src="script.js?v=20260826-1"></script>
+  </main><script src="assets/three.min.js"></script><script src="portfolio-book.js?v=20260825-20"></script><script src="city-3d.js?v=20260821-9"></script><script src="hero-smart-city.js?v=20260824-10"></script><script src="assets/turkey-provinces.js"></script><script src="script.js?v=20260902-1"></script>
 </body>
 </html>
