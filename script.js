@@ -150,10 +150,10 @@ const studyCities = {
   },
   'İstanbul': {
     index: '04 / 04', code: 'İS', coordinates: [28.9784, 41.0082],
-    type: 'Belediye deneyimi · Çekmeköy',
-    text: 'Plan tadilatı, 18. madde uygulaması, DOP hesabı, saha çalışmaları ve planlama mevzuatı üzerine belediye deneyimi edindiğim kent.',
-    tools: ['Planlama', 'Saha verisi', 'Mevzuat', 'DOP hesabı'],
-    actions: '<button type="button" data-open-zone="experience">Deneyimi aç ↗</button>'
+    type: 'CTC Balance · Ulaşım WebGIS · Belediye deneyimi',
+    text: 'CTC Balance, İstanbul’da toplu taşıma ve alternatif güzergâhları konfor, süre ve maliyet açısından karşılaştırmak için geliştirdiğim WebGIS tabanlı ulaşım ve karar destek projesi. Rota alternatifleri, aktarmalar, park-et-devam-et senaryoları ve mekânsal erişilebilirlik analizleri üzerine çalışıyorum. Ayrıca Çekmeköy Belediyesi’nde plan tadilatı, 18. madde uygulaması, DOP hesabı ve saha çalışmaları deneyimi edindim.',
+    tools: ['CTC Balance', 'WebGIS', 'Python', 'PostGIS', 'Ulaşım analizi'],
+    actions: '<a href="https://ctc-balance.onrender.com/" target="_blank" rel="noopener noreferrer">CTC Balance canlı uygulama ↗</a><a href="https://github.com/GeoTech-Dila/ctc-balance" target="_blank" rel="noopener noreferrer">GitHub kodları ↗</a><button type="button" data-open-zone="experience">Belediye deneyimini aç ↗</button>'
   }
 };
 
